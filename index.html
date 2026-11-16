@@ -184,7 +184,7 @@ function step(now){
   if(!keys[g]){p.anchor=false;p.anchorX=undefined;p.anchorY=undefined}
   else if(!p.anchor&&p.on){p.anchor=true;p.anchorX=p.x;p.anchorY=p.y;p.anchorPlatform=p.platform}
   if(p.anchor){p.x=p.anchorX;p.y=p.anchorY;p.vx=p.vy=0;p.on=true}
-  else {const guestControlled=netRole==='host'&&p===players[1];const accel=guestControlled?.68:.85;const drag=guestControlled?.18:.11;const maxRun=guestControlled?5.7:7.7;p.vx+=(dir*accel-p.vx*drag)*dt;p.vx=Math.max(-maxRun,Math.min(maxRun,p.vx));p.vy=Math.min(14,p.vy+.46*dt);
+  else {const guestControlled=netRole==='host'&&p===players[1];const accel=guestControlled?(dir?.55:0):.85;const drag=guestControlled?(dir?.32:.58):.11;const maxRun=guestControlled?3.6:7.7;p.vx+=(dir*accel-p.vx*drag)*dt;p.vx=Math.max(-maxRun,Math.min(maxRun,p.vx));p.vy=Math.min(14,p.vy+.46*dt);
    if(keys[j]&&p.on&&!p.jheld){p.vy=-12.7;p.on=false;p.platform=null}}
   p.jheld=!!keys[j];
  };
