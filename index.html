@@ -28,7 +28,7 @@ const ground=[
 ];
 const moving=[
  {x:1290,y:345,w:62,baseX:1290,baseY:345,axis:'y',amp:43,speed:.0011,phase:0},
- {x:1836,y:325,w:62,baseX:1836,baseY:325,axis:'y',amp:45,speed:.001,phase:1},
+ {x:1796,y:350,w:80,baseX:1796,baseY:350,axis:'x',travel:160,hold:1100,moveTime:2500,phaseMs:0},
  {x:3376,y:355,w:62,baseX:3376,baseY:355,axis:'y',amp:40,speed:.0012,phase:0},
  {x:4104,y:350,w:80,baseX:4104,baseY:350,axis:'x',travel:160,hold:1500,moveTime:2300,phaseMs:0},
  {x:5212,y:350,w:80,baseX:5212,baseY:350,axis:'x',travel:160,hold:1500,moveTime:2300,phaseMs:1200},
@@ -184,7 +184,7 @@ function step(now){
   if(!keys[g]){p.anchor=false;p.anchorX=undefined;p.anchorY=undefined}
   else if(!p.anchor&&p.on){p.anchor=true;p.anchorX=p.x;p.anchorY=p.y;p.anchorPlatform=p.platform}
   if(p.anchor){p.x=p.anchorX;p.y=p.anchorY;p.vx=p.vy=0;p.on=true}
-  else {p.vx+=(dir*.85-p.vx*.11)*dt;p.vy=Math.min(14,p.vy+.46*dt);
+  else {const guestControlled=netRole==='host'&&p===players[1];const accel=guestControlled?.68:.85;const drag=guestControlled?.18:.11;const maxRun=guestControlled?5.7:7.7;p.vx+=(dir*accel-p.vx*drag)*dt;p.vx=Math.max(-maxRun,Math.min(maxRun,p.vx));p.vy=Math.min(14,p.vy+.46*dt);
    if(keys[j]&&p.on&&!p.jheld){p.vy=-12.7;p.on=false;p.platform=null}}
   p.jheld=!!keys[j];
  };
