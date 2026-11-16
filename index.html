@@ -37,7 +37,8 @@ const moving=[
 const crystalBridges=[{x:1180,y:365,w:100,period:4200,offset:0},{x:2735,y:360,w:110,period:4600,offset:1200},{x:4520,y:340,w:100,period:4200,offset:2000}];
 const plates=[{x:3087,y:390,pressed:false},{x:3217,y:390,pressed:false}];
 let gateOpen=false,gateLatch=0,forestStage=1,falls=0;
-let players=[{x:70,y:330,vx:0,vy:0,name:'Devas',color:'#29243b',hair:'#14111c',gold:'#f5b952',on:false,anchor:false},{x:130,y:330,vx:0,vy:0,name:'Freya',color:'#fff8e9',hair:'#d84a51',gold:'#edbc5e',on:false,anchor:false}];let selected=0,cam=0,rope=170,checkpoint=70,rescues=0,prevFalling=[false,false],keys={};const swap=document.querySelector('#swap');swap.onclick=()=>{selected=1-selected;swap.textContent='Control: '+players[selected].name};function keyset(k,v){keys[k]=v}document.querySelectorAll('.key').forEach(b=>{const k=b.dataset.k;for(let ev of ['pointerdown','pointerup','pointercancel','pointerleave'])b.addEventListener(ev,e=>{e.preventDefault();keyset(k,ev==='pointerdown');b.classList.toggle('down',ev==='pointerdown')})});const keyMap={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',' ':'jump',Shift:'grab',Enter:'pull',a:'a',d:'d',w:'w',q:'q',e:'e',j:'j',l:'l',i:'i',u:'u',o:'o'};addEventListener('keydown',e=>{if(keyMap[e.key]){e.preventDefault();keys[keyMap[e.key]]=true}if(e.key==='Tab'){e.preventDefault();swap.click()}});addEventListener('keyup',e=>{if(keyMap[e.key])keys[keyMap[e.key]]=false});
+let players=[{x:70,y:330,vx:0,vy:0,name:'Devas',color:'#29243b',hair:'#14111c',gold:'#f5b952',on:false,anchor:false},{x:130,y:330,vx:0,vy:0,name:'Freya',color:'#fff8e9',hair:'#d84a51',gold:'#edbc5e',on:false,anchor:false}];let selected=0,cam=0,rope=170,checkpoint=70,rescues=0,prevFalling=[false,false],keys={};const swap=document.querySelector('#swap');swap.onclick=()=>{selected=1-selected;swap.textContent='Control: '+players[selected].name};function keyset(k,v){if(keys[k]===v)return;keys[k]=v;if(netRole==='guest')sendGuestInputs(true)}document.querySelectorAll('.key').forEach(b=>{const k=b.dataset.k;for(let ev of ['pointerdown','pointerup','pointercancel','pointerleave'])b.addEventListener(ev,e=>{e.preventDefault();keyset(k,ev==='pointerdown');b.classList.toggle('down',ev==='pointerdown')})});const keyMap={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',' ':'jump',Shift:'grab',Enter:'pull',a:'a',d:'d',w:'w',q:'q',e:'e',j:'j',l:'l',i:'i',u:'u',o:'o'};addEventListener('keydown',e=>{if(keyMap[e.key]){e.preventDefault();keys[keyMap[e.key]]=true}if(e.key==='Tab'){e.preventDefault();swap.click()}});addEventListener('keyup',e=>{if(keyMap[e.key])keys[keyMap[e.key]]=false});
+addEventListener('blur',()=>{for(const k of ['left','right','jump','grab','pull'])keyset(k,false);document.querySelectorAll('.key').forEach(b=>b.classList.remove('down'))});
 let last=performance.now(),rescueTimer=0;
 let celebrationStart=0, celebrationDone=false;
 document.querySelector('#nextWorld').onclick=()=>{
@@ -50,7 +51,7 @@ const SUPABASE_URL='https://ceuoiiexmhxfgkwidpwk.supabase.co';
 const SUPABASE_KEY='sb_publishable_RGZGZ-GVPgVMcAaebqQ0sg_t3qp-lht';
 let netRole='menu',remoteKeys={},netLastSend=0,hostClockOffset=0,inviteCode='',connected=false,lastPacket=0;
 let channel=null,sb=null,guestToken='',activeGuest='',lastHello=0,lastInput=0,lastJoin=0,lastState=0,netSubscribed=false;
-let lastGuestInput=0,lastGuestDraw=0,guestTargets=null,guestRenderReady=false,lastNetStatus='';
+let lastGuestInput=0,lastGuestDraw=0,guestTargets=null,guestRenderReady=false,lastNetStatus='',guestInputSeq=0,hostInputSeq=-1;
 let guestFrames=[],guestVisualCam=null;
 const shareInvite=document.querySelector('#shareInvite');
 const netMenu=document.querySelector('#netMenu'),netStatus=document.querySelector('#netStatus'),netBadge=document.querySelector('#netBadge');
@@ -64,6 +65,7 @@ async function shareRoom(){if(!inviteCode)return;const url=inviteUrl();try{await
 shareInvite.onclick=shareRoom;
 function netStart(role){netRole=role;selected=role==='guest'?1:0;netMenu.style.display='none';shareInvite.style.display=role==='host'?'block':'none';if(role==='host')sessionStorage.setItem('devasRoom38',inviteCode);statusNet(role==='host'?'🟡 Sala '+inviteCode+' · esperando a Freya':role==='guest'?'🟡 Conectando con Devas…':'Modo local')}
 function setRemoteInputs(o){if(!o||typeof o!=='object')return;for(const k of ['left','right','jump','grab','pull'])remoteKeys[k]=!!o[k]}
+function sendGuestInputs(force=false){if(netRole!=='guest'||!netSubscribed)return;const now=performance.now();if(!force&&now-lastGuestInput<45)return;lastGuestInput=now;const o={};for(const k of ['left','right','jump','grab','pull'])o[k]=!!keys[k];sendEvent('input',{token:guestToken,seq:++guestInputSeq,keys:o})}
 function sendEvent(event,payload){if(!channel||!netSubscribed)return;channel.send({type:'broadcast',event,payload}).catch(()=>{});}
 function applySnapshot(m){if(!m||!Array.isArray(m.players))return;
  guestTargets=m.players.map(p=>({x:p.x,y:p.y}));
@@ -84,20 +86,20 @@ function onNetworkMessage(event,m){if(!m||typeof m!=='object')return;const now=p
   if(event==='join'){
    if(typeof m.token!=='string'||m.token.length<8)return;
    if(activeGuest&&activeGuest!==m.token&&now-lastInput<8000){sendEvent('busy',{token:m.token});return}
-   activeGuest=m.token;connected=true;lastInput=now;remoteKeys={};statusNet('🟢 Freya conectada ❤️');sendEvent('welcome',{token:activeGuest});sendSnapshot(now,true);
-  }else if(event==='input'&&m.token===activeGuest){lastInput=now;setRemoteInputs(m.keys)}
+   activeGuest=m.token;connected=true;lastInput=now;remoteKeys={};hostInputSeq=-1;statusNet('🟢 Freya conectada ❤️');sendEvent('welcome',{token:activeGuest});sendSnapshot(now,true);
+  }else if(event==='input'&&m.token===activeGuest){if(typeof m.seq==='number'&&m.seq<=hostInputSeq)return;if(typeof m.seq==='number')hostInputSeq=m.seq;lastInput=now;setRemoteInputs(m.keys)}
  }else if(netRole==='guest'){
   if(event==='hello'){if(!connected&&now-lastJoin>700)sendJoin()}
-  if(event==='welcome'&&m.token===guestToken){connected=true;lastPacket=now;statusNet('🟢 Conectada con Devas ❤️')}
+  if(event==='welcome'&&m.token===guestToken){connected=true;lastPacket=now;statusNet('🟢 Conectada con Devas ❤️');sendGuestInputs(true)}
   if(event==='busy'&&m.token===guestToken)statusNet('🔴 Ya hay otra Freya en esta sala');
-  if(event==='state'&&m.token===guestToken){connected=true;lastPacket=now;applySnapshot(m.state);statusNet('🟢 Conectada con Devas ❤️')}
+  if(event==='state'&&m.token===guestToken){connected=true;lastPacket=now;applySnapshot(m.state);statusNet('🟢 Conectada con Devas ❤️');sendGuestInputs(true)}
  }
 }
 function sendJoin(){lastJoin=performance.now();sendEvent('join',{token:guestToken})}
 function openRoom(role,code){
  if(!window.supabase?.createClient){statusNet('🔴 No cargó Supabase. Comprueba internet y recarga.');return}
  if(channel){try{sb.removeChannel(channel)}catch(e){}}
- netSubscribed=false;connected=false;activeGuest='';remoteKeys={};lastPacket=0;guestRenderReady=false;guestTargets=null;guestFrames=[];guestVisualCam=null;lastGuestInput=0;
+ netSubscribed=false;connected=false;activeGuest='';remoteKeys={};guestInputSeq=0;hostInputSeq=-1;lastPacket=0;guestRenderReady=false;guestTargets=null;guestFrames=[];guestVisualCam=null;lastGuestInput=0;
  inviteCode=code;roomInput.value=code;
  if(!sb)sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:20}}});
  netStart(role);
@@ -114,7 +116,7 @@ const joinHash=new URLSearchParams(location.hash.replace(/^#/,''));const autoCod
 if(/^[A-Z2-9]{12}$/.test(autoCode)){roomInput.value=autoCode;statusNet('Invitación de Devas ❤️');setTimeout(()=>document.querySelector('#joinBtn').click(),800)}
 else{const saved=sessionStorage.getItem('devasRoom38');if(saved&&/^[A-Z2-9]{12}$/.test(saved)){statusNet('Recuperando sala '+saved+'…');setTimeout(()=>openRoom('host',saved),800)}}
 document.querySelector('#localBtn').onclick=()=>{netStart('local');swap.style.display='block'};
-function syncInputs(){if(netRole==='host'){keys.j=!!remoteKeys.left;keys.l=!!remoteKeys.right;keys.i=!!remoteKeys.jump;keys.u=!!remoteKeys.grab;keys.e=!!remoteKeys.pull}else if(netRole==='guest'&&netSubscribed){const now=performance.now();if(now-lastGuestInput<85)return;lastGuestInput=now;const o={};for(const k of ['left','right','jump','grab','pull'])o[k]=!!keys[k];sendEvent('input',{token:guestToken,keys:o})}}
+function syncInputs(){if(netRole==='host'){keys.j=!!remoteKeys.left;keys.l=!!remoteKeys.right;keys.i=!!remoteKeys.jump;keys.u=!!remoteKeys.grab;keys.e=!!remoteKeys.pull}else if(netRole==='guest')sendGuestInputs(false)}
 function sendSnapshot(now,force=false){if(netRole!=='host'||!connected||!netSubscribed||(!force&&now-netLastSend<65))return;netLastSend=now;
  sendEvent('state',{token:activeGuest,state:{t:now,players:players.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,on:p.on,anchor:p.anchor})),moving:moving.map(p=>({x:p.x,y:p.y})),plates:plates.map(p=>p.pressed),rope,cam,gateOpen,forestStage,falls,rescues,celebrationStart,celebrationDone}})}
 setInterval(()=>{const now=performance.now();if(netRole==='host'&&netSubscribed){if(connected&&now-lastInput>9000){connected=false;activeGuest='';remoteKeys={};statusNet('🟡 Freya desconectada · esperando que regrese')}if(now-lastHello>2200){lastHello=now;sendEvent('hello',{})}}
