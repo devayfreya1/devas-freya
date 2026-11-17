@@ -1,79 +1,410 @@
 <!DOCTYPE html>
-<html lang="es"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Diagnóstico de refresco – Devas &amp; Freya</title>
-<style>
-:root{--bg:#ffffff;--fg:#14171f;--mu:#586174;--bd:#cfd5e2;--ac:#2a5bd7;--cd:#f2f4f9;color-scheme:light dark}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10131c;--fg:#eef0f6;--mu:#a2abc0;--bd:#2d3447;--ac:#7aa2ff;--cd:#1a1f2d}}
-:root[data-theme="dark"]{--bg:#10131c;--fg:#eef0f6;--mu:#a2abc0;--bd:#2d3447;--ac:#7aa2ff;--cd:#1a1f2d}
-*{box-sizing:border-box}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif;padding:max(14px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(18px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));max-width:760px;margin-inline:auto}
-h1{font-size:19px;margin:.2em 0}p{margin:.4em 0;color:var(--mu)}
-button{font:600 15px system-ui,sans-serif;padding:12px 16px;border-radius:12px;border:2px solid var(--ac);background:transparent;color:var(--ac);margin:4px 6px 4px 0}
-button:disabled{opacity:.45}
-#st{font-weight:600;margin:8px 0}
-canvas{display:none;width:100%;height:150px;border:1px solid var(--bd);border-radius:10px;touch-action:none;background:var(--cd)}
-textarea{width:100%;height:300px;background:var(--cd);color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:10px;font:12px/1.4 ui-monospace,monospace}
-</style></head><body>
-<h1>Diagnóstico de refresco</h1>
-<p>Herramienta independiente. No es el juego ni la Etapa 2. Mide los intervalos entre cuadros del navegador durante 10 segundos.</p>
-<p><b>Cómo usarla:</b> ejecútala en horizontal, con la pantalla encendida y sin otras apps abiertas. Haz las dos pruebas. En la segunda, mueve el dedo por el recuadro durante los 10 segundos. Repite en otro contexto (por ejemplo, abierta dentro de la app de Claude y descargada en Chrome) y copia los resultados.</p>
-<button id="b1">Medir 10 s sin carga</button><button id="b2">Medir 10 s con dibujo y toque</button>
-<div id="st">Lista.</div>
-<canvas id="cv"></canvas>
-<p>Resultados (se acumulan; selecciona y copia todo el texto):</p>
-<textarea id="out" readonly></textarea>
-<button id="cp">Copiar resultados</button>
-<script>
-const $=id=>document.getElementById(id);
-let busy=false,touches=0;
-const ctx=$('cv').getContext('2d');
-$('cv').addEventListener('pointermove',()=>{touches++});
-function pct(s,p){return s[Math.min(s.length-1,Math.floor(p*s.length))]}
-function stats(a){const s=a.slice().sort((x,y)=>x-y),n=s.length,m=a.reduce((x,y)=>x+y,0)/n,
- sd=Math.sqrt(a.reduce((x,y)=>x+(y-m)*(y-m),0)/n),med=pct(s,.5);
- return{n,m,sd,med,min:s[0],max:s[n-1],p95:pct(s,.95),p99:pct(s,.99)}}
-const BK=[[0,5,'<5 ms (>200 Hz)'],[5,7,'5–7 ms (~144–200 Hz)'],[7,9.5,'7–9,5 ms (~120 Hz)'],[9.5,12.5,'9,5–12,5 ms (~80–105 Hz)'],[12.5,15,'12,5–15 ms'],[15,18.5,'15–18,5 ms (~60 Hz)'],[18.5,25,'18,5–25 ms'],[25,36,'25–36 ms (~30–40 Hz)'],[36,1e9,'>36 ms']];
-function fmt(v,d=2){return v.toFixed(d)}
-function report(label,a,hid,extra){
- const t=stats(a),over=a.filter(v=>v>1.5*t.med).length,clamp=a.filter(v=>v>33).length;
- const sub=a.map(v=>Math.min(33,v)/2),ts=stats(sub);
- let r='=== '+label+' ===\n'+new Date().toISOString()+'\n';
- r+='Cuadros medidos: '+t.n+(hid?'  (AVISO: la página estuvo oculta; medición no válida)':'')+'\n';
- r+='Intervalo mediano: '+fmt(t.med)+' ms  -> '+fmt(1000/t.med,1)+' Hz estimados\n';
- r+='Intervalo medio: '+fmt(t.m)+' ms  -> '+fmt(1000/t.m,1)+' Hz   Desv. típica: '+fmt(t.sd)+' ms\n';
- r+='Mín/Máx: '+fmt(t.min)+' / '+fmt(t.max)+' ms   P95: '+fmt(t.p95)+'   P99: '+fmt(t.p99)+' ms\n';
- r+='Cuadros >1,5x la mediana (saltos): '+over+' ('+fmt(100*over/t.n,1)+' %)   Cuadros >33 ms: '+clamp+' ('+fmt(100*clamp/t.n,1)+' %)\n';
- r+='Subpaso equivalente del bucle V0.1.3 (min(33 ms, intervalo)/2): mediana '+fmt(ts.med)+' ms, medio '+fmt(ts.m)+' ms, máx '+fmt(ts.max)+' ms\n';
- r+='Histograma de intervalos:\n';
- for(const [lo,hi,name] of BK){const c=a.filter(v=>v>=lo&&v<hi).length;if(c)r+='  '+name+': '+c+' ('+fmt(100*c/t.n,1)+' %)\n'}
- if(extra)r+=extra+'\n';
- return r}
-function info(){
- const o=screen.orientation&&screen.orientation.type||'?';
- return 'Dispositivo: '+screen.width+'x'+screen.height+' (ventana '+innerWidth+'x'+innerHeight+', DPR '+devicePixelRatio+')\nOrientación: '+o+'   Núcleos: '+(navigator.hardwareConcurrency||'?')+'\nDentro de otro visor (iframe): '+(window.top!==window.self?'sí':'no')+'\nNavegador: '+navigator.userAgent+'\n'}
-function draw(ts){const w=ctx.canvas.width=ctx.canvas.clientWidth,h=ctx.canvas.height=150;ctx.clearRect(0,0,w,h);
- for(let i=0;i<40;i++){const x=(i*47+ts*.12*(1+i%5))%w,y=20+(i*31)%110;ctx.fillStyle='hsl('+(i*9)+',70%,55%)';ctx.fillRect(x,y,26,38)}
- ctx.strokeStyle='#999';ctx.beginPath();ctx.moveTo(30,75);ctx.quadraticCurveTo(w/2,140+30*Math.sin(ts/300),w-30,75);ctx.stroke()}
-function run(load){
- if(busy)return;busy=true;$('b1').disabled=$('b2').disabled=true;
- $('cv').style.display=load?'block':'none';touches=0;
- const a=[];let last=0,t0=0,n=0,hid=false;
- function tick(ts){
-  if(document.hidden)hid=true;
-  if(!last){last=ts;t0=ts;requestAnimationFrame(tick);return}
-  const d=ts-last;last=ts;n++;if(n>30)a.push(d);
-  if(load)draw(ts);
-  const left=Math.max(0,10-(ts-t0)/1000);
-  $('st').textContent='Midiendo… '+left.toFixed(1)+' s';
-  if(ts-t0<10000){requestAnimationFrame(tick);return}
-  const label=load?'Con dibujo y toque':'Sin carga';
-  const ex=load?'Eventos de movimiento táctil registrados: '+touches+(touches<20?'  (AVISO: casi no hubo toque)':''):'';
-  $('out').value+=info()+report(label,a,hid,ex)+'\n';
-  $('st').textContent='Listo. Resultados abajo.';busy=false;$('b1').disabled=$('b2').disabled=false;
-  $('out').scrollTop=$('out').scrollHeight}
- requestAnimationFrame(tick)}
-$('b1').onclick=()=>run(false);$('b2').onclick=()=>run(true);
-$('cp').onclick=async()=>{const o=$('out');o.select();try{await navigator.clipboard.writeText(o.value);$('st').textContent='Copiado.'}catch(e){document.execCommand&&document.execCommand('copy');$('st').textContent='Texto seleccionado: cópialo manualmente si no se copió.'}};
-</script></body></html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Los mundos de Devas & Freya — Versión 0.2.9</title>
+    <style>
+        * { box-sizing: border-box; touch-action: none; margin: 0; padding: 0; }
+        body, html { width: 100%; height: 100%; background: #0b0c10; overflow: hidden; font-family: sans-serif; color: white; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(11,12,16,0.92); z-index: 10; }
+        .menu-box { background: #1f2833; padding: 25px; border-radius: 12px; text-align: center; border: 2px solid #c5c6c7; width: 90%; max-width: 400px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        input { padding: 12px; font-size: 18px; width: 100%; margin-bottom: 15px; border-radius: 6px; border: 1px solid #45a29e; background: #0b0c10; color: white; text-align: center; }
+        button { padding: 14px; font-size: 16px; width: 100%; background: #66fcf1; color: #0b0c10; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+        button:active { background: #45a29e; }
+        #game-canvas { display: block; width: 100%; height: 100%; background: #1f2833; }
+        #hud { position: absolute; top: 10px; left: 10px; font-size: 13px; background: rgba(11,12,16,0.8); padding: 10px; border-radius: 6px; border: 1px solid #45a29e; pointer-events: none; z-index: 5; line-height: 1.5; }
+        
+        /* Controles definitivos e inalterables */
+        #controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; z-index: 5; }
+        .touch-btn { position: absolute; background: rgba(197,198,199,0.18); border: 2px solid rgba(197,198,199,0.45); border-radius: 50%; width: 72px; height: 72px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; pointer-events: auto; user-select: none; text-align: center; line-height: 1.1; }
+        .touch-btn span { font-size: 10px; margin-top: 2px; }
+        .touch-btn:active, .touch-btn.active { background: rgba(102,252,241,0.35); border-color: #66fcf1; color: #66fcf1; }
+
+        /* Lado izquierdo: ◀ | ANCLAR | ▶ */
+        #btn-left  { bottom: 22px; left: 20px; }
+        #btn-plant { bottom: 22px; left: 102px; border-color: #ff4757; color: #ff6b6b; background: rgba(255,71,87,0.18); }
+        #btn-plant.active { background: rgba(255,71,87,0.45); color: #fff; }
+        #btn-right { bottom: 22px; left: 184px; }
+
+        /* Lado derecho: SUBIR CUERDA | SALTAR */
+        #btn-jump  { bottom: 22px; right: 20px; background: rgba(102,252,241,0.2); border-color: #66fcf1; }
+        #btn-climb { bottom: 22px; right: 106px; background: rgba(255,165,2,0.18); border-color: #ffa502; color: #ffa502; opacity: 0.45; transition: opacity 0.15s; }
+        #btn-climb.ready { opacity: 1; }
+        #btn-climb.active { background: rgba(255,165,2,0.45); color: #fff; }
+
+        #pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 8; font-size: 28px; font-weight: bold; color: #ff4757; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div class="menu-box" id="menu-main">
+            <h2>Devas & Freya</h2>
+            <p style="margin: 15px 0; color: #c5c6c7; font-size: 14px;">Versión 0.2.9</p>
+            <button onclick="createRoom()">Crear Sala Privada</button>
+            <button onclick="showJoinMenu()" style="background: #45a29e; color: #fff;">Unirse a Sala</button>
+        </div>
+
+        <div class="menu-box" id="menu-join" style="display:none;">
+            <h2>Unirse a Partida</h2>
+            <input type="text" id="room-code-input" placeholder="Código de 4 letras" maxlength="4">
+            <button onclick="joinRoom()">Conectar</button>
+            <button onclick="showMain()" style="background: #333; color: #fff;">Volver</button>
+        </div>
+
+        <div class="menu-box" id="menu-waiting" style="display:none;">
+            <h2>Esperando Compañero...</h2>
+            <p style="margin: 15px 0;">Código de sala: <span id="display-code" style="color: #66fcf1; font-weight: bold; font-size: 24px;">----</span></p>
+            <p style="font-size: 13px; color: #c5c6c7;">Comparte este código con tu compañero en el otro teléfono.</p>
+        </div>
+    </div>
+
+    <div id="pause-overlay">PARTIDA PAUSADA<br><span style="font-size: 16px; color: #fff;">Esperando reconexión del compañero...</span></div>
+
+    <div id="hud">
+        FPS: <span id="fps">60</span> | RTT: <span id="rtt">0</span>ms<br>
+        Rol: <span id="my-role">-</span> | Cuerda: <span id="rope-len">0</span>/<span id="rope-target">120</span>px (<span id="rope-status">Normal</span>)
+    </div>
+
+    <canvas id="game-canvas"></canvas>
+
+    <div id="controls">
+        <!-- Lado izquierdo: ◀ | ANCLAR | ▶ -->
+        <div class="touch-btn" id="btn-left" data-action="left">◀</div>
+        <div class="touch-btn" id="btn-plant" data-action="plant">⚓<span>ANCLAR</span></div>
+        <div class="touch-btn" id="btn-right" data-action="right">▶</div>
+
+        <!-- Lado derecho: SUBIR CUERDA | SALTAR -->
+        <div class="touch-btn" id="btn-climb" data-action="climb">↥<span>SUBIR</span></div>
+        <div class="touch-btn" id="btn-jump" data-action="jump">↑<span>SALTAR</span></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const LOGICAL_WIDTH = 1200;
+        const LOGICAL_HEIGHT = 700;
+
+        let roomCode = localStorage.getItem('df_room') || '';
+        let myRole = '';
+        let reconnectToken = localStorage.getItem('df_token') || null;
+        
+        const stateBuffer = [];
+        let latestRopeInfo = { length: 0, targetLength: 120, tension: false };
+        let inputSeq = 0;
+        
+        let rtt = 0;
+        let fps = 60;
+        let frameCount = 0;
+        let lastFpsUpdate = performance.now();
+
+        const input = { left: false, right: false, jump: false, plant: false, climb: false, seq: 0 };
+        const activePointers = new Map();
+
+        function resizeCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = window.innerWidth * dpr;
+            canvas.height = window.innerHeight * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function showMain() {
+            document.getElementById('menu-main').style.display = 'block';
+            document.getElementById('menu-join').style.display = 'none';
+            document.getElementById('menu-waiting').style.display = 'none';
+        }
+
+        function showJoinMenu() {
+            document.getElementById('menu-main').style.display = 'none';
+            document.getElementById('menu-join').style.display = 'block';
+        }
+
+        function createRoom() {
+            socket.emit('createRoom', (res) => {
+                if (res.success) {
+                    roomCode = res.code;
+                    myRole = res.role;
+                    reconnectToken = res.token;
+                    localStorage.setItem('df_room', roomCode);
+                    localStorage.setItem('df_token', reconnectToken);
+                    document.getElementById('my-role').innerText = myRole;
+                    document.getElementById('display-code').innerText = roomCode;
+                    document.getElementById('menu-main').style.display = 'none';
+                    document.getElementById('menu-waiting').style.display = 'block';
+                }
+            });
+        }
+
+        function joinRoom() {
+            const code = document.getElementById('room-code-input').value.toUpperCase();
+            if (code.length !== 4) {
+                alert('Introduce un código válido de 4 letras.');
+                return;
+            }
+
+            const tempToken = (code === roomCode) ? reconnectToken : null;
+
+            socket.emit('joinRoom', { code, token: tempToken }, (res) => {
+                if (res.success) {
+                    roomCode = res.code;
+                    myRole = res.role;
+                    reconnectToken = res.token;
+                    localStorage.setItem('df_room', roomCode);
+                    localStorage.setItem('df_token', reconnectToken);
+                    document.getElementById('my-role').innerText = myRole;
+                    startGameUI();
+                } else {
+                    alert(res.message);
+                }
+            });
+        }
+
+        socket.on('connect', () => {
+            if (roomCode && reconnectToken) {
+                socket.emit('joinRoom', { code: roomCode, token: reconnectToken }, (res) => {
+                    if (res.success) {
+                        myRole = res.role;
+                        document.getElementById('my-role').innerText = myRole;
+                        if (res.state === 'playing') startGameUI();
+                    } else {
+                        localStorage.removeItem('df_room');
+                        localStorage.removeItem('df_token');
+                        roomCode = '';
+                        showMain();
+                    }
+                });
+            }
+        });
+
+        socket.on('sessionReplaced', (data) => {
+            alert(data.message);
+            localStorage.removeItem('df_room');
+            localStorage.removeItem('df_token');
+            location.reload();
+        });
+
+        socket.on('roomDestroyed', (data) => {
+            alert(data.message);
+            localStorage.removeItem('df_room');
+            localStorage.removeItem('df_token');
+            location.reload();
+        });
+
+        socket.on('roomUpdate', (data) => {
+            if (data.state === 'playing') {
+                startGameUI();
+                document.getElementById('pause-overlay').style.display = 'none';
+            } else if (data.state === 'paused') {
+                document.getElementById('pause-overlay').style.display = 'flex';
+            }
+        });
+
+        socket.on('gameState', (data) => {
+            latestRopeInfo = data.rope;
+            document.getElementById('rope-len').innerText = data.rope.length;
+            document.getElementById('rope-target').innerText = data.rope.targetLength;
+            
+            const statusEl = document.getElementById('rope-status');
+            statusEl.innerText = data.rope.tension ? 'Tensa' : 'Relajada';
+            statusEl.style.color = data.rope.tension ? '#ff4757' : '#66fcf1';
+            
+            if (data.state === 'playing') {
+                document.getElementById('pause-overlay').style.display = 'none';
+            }
+
+            const partnerRole = myRole === 'Devas' ? 'Freya' : 'Devas';
+            const partnerPlanted = data.players[partnerRole] && data.players[partnerRole].planted;
+            const climbBtn = document.getElementById('btn-climb');
+            if (partnerPlanted) {
+                climbBtn.classList.add('ready');
+            } else {
+                climbBtn.classList.remove('ready');
+            }
+
+            stateBuffer.push({ localReceiveTime: performance.now(), timestamp: data.timestamp, players: data.players });
+            if (stateBuffer.length > 30) stateBuffer.shift();
+        });
+
+        function startGameUI() {
+            document.getElementById('ui-layer').style.display = 'none';
+            document.getElementById('controls').style.display = 'block';
+        }
+
+        setInterval(() => {
+            const start = performance.now();
+            socket.emit('pingCheck', () => {
+                rtt = Math.round(performance.now() - start);
+                document.getElementById('rtt').innerText = rtt;
+            });
+        }, 1000);
+
+        setInterval(() => {
+            if (roomCode && socket.connected) {
+                input.seq = ++inputSeq;
+                socket.emit('playerInput', { code: roomCode, input });
+            }
+        }, 1000 / 60);
+
+        document.querySelectorAll('.touch-btn').forEach(btn => {
+            const action = btn.getAttribute('data-action');
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                try { btn.setPointerCapture(e.pointerId); } catch (err) {}
+                activePointers.set(e.pointerId, { action, target: btn });
+                input[action] = true;
+                btn.classList.add('active');
+            });
+            btn.addEventListener('pointerup', (e) => { e.preventDefault(); releasePointer(e.pointerId, btn); });
+            btn.addEventListener('pointercancel', (e) => { e.preventDefault(); releasePointer(e.pointerId, btn); });
+            btn.addEventListener('lostpointercapture', (e) => { releasePointer(e.pointerId, btn); });
+        });
+
+        function releasePointer(pointerId, btn) {
+            if (activePointers.has(pointerId)) {
+                activePointers.delete(pointerId);
+                updateInputsFromPointers();
+                btn.classList.remove('active');
+            }
+        }
+
+        function updateInputsFromPointers() {
+            input.left = false; input.right = false; input.jump = false; input.plant = false; input.climb = false;
+            activePointers.forEach(item => { input[item.action] = true; });
+        }
+
+        window.addEventListener('blur', clearAllInputs);
+        document.addEventListener('visibilitychange', () => { 
+            if (document.hidden) {
+                clearAllInputs();
+                input.seq = ++inputSeq;
+                if (roomCode) socket.emit('playerInput', { code: roomCode, input });
+            } 
+        });
+
+        function clearAllInputs() {
+            activePointers.clear();
+            input.left = false; input.right = false; input.jump = false; input.plant = false; input.climb = false;
+            document.querySelectorAll('.touch-btn').forEach(b => b.classList.remove('active'));
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const scaleX = window.innerWidth / LOGICAL_WIDTH;
+            const scaleY = window.innerHeight / LOGICAL_HEIGHT;
+            const scale = Math.min(scaleX, scaleY);
+
+            ctx.save();
+
+            let renderDevas = null;
+            let renderFreya = null;
+
+            const targetRenderLocalTime = performance.now() - 100;
+            let targetState = null;
+            let previousState = null;
+
+            for (let i = stateBuffer.length - 1; i >= 0; i--) {
+                if (stateBuffer[i].localReceiveTime <= targetRenderLocalTime) {
+                    previousState = stateBuffer[i];
+                    targetState = stateBuffer[i + 1] || previousState;
+                    break;
+                }
+            }
+
+            if (previousState && targetState) {
+                const total = targetState.localReceiveTime - previousState.localReceiveTime;
+                const portion = total > 0 ? (targetRenderLocalTime - previousState.localReceiveTime) / total : 1;
+                const t = Math.min(1, Math.max(0, portion));
+
+                const pDevasPrev = previousState.players['Devas'];
+                const pDevasCurr = targetState.players['Devas'];
+                const pFreyaPrev = previousState.players['Freya'];
+                const pFreyaCurr = targetState.players['Freya'];
+
+                renderDevas = {
+                    x: pDevasPrev.x + (pDevasCurr.x - pDevasPrev.x) * t,
+                    y: pDevasPrev.y + (pDevasCurr.y - pDevasPrev.y) * t,
+                    planted: pDevasCurr.planted
+                };
+                renderFreya = {
+                    x: pFreyaPrev.x + (pFreyaCurr.x - pFreyaPrev.x) * t,
+                    y: pFreyaPrev.y + (pFreyaCurr.y - pFreyaPrev.y) * t,
+                    planted: pFreyaCurr.planted
+                };
+            } else if (stateBuffer.length > 0) {
+                const latest = stateBuffer[stateBuffer.length - 1];
+                renderDevas = latest.players['Devas'];
+                renderFreya = latest.players['Freya'];
+            }
+
+            let camOffsetX = 0;
+            if (renderDevas && renderFreya) {
+                const midX = (renderDevas.x + renderFreya.x) / 2;
+                const visibleLogicalWidth = window.innerWidth / scale;
+                camOffsetX = visibleLogicalWidth / 2 - midX;
+                camOffsetX = Math.min(0, Math.max(visibleLogicalWidth - LOGICAL_WIDTH, camOffsetX));
+            }
+
+            ctx.translate((window.innerWidth - LOGICAL_WIDTH * scale) / 2, 0);
+            ctx.scale(scale, scale);
+            ctx.translate(camOffsetX, 0);
+
+            ctx.fillStyle = '#0b0c10';
+            ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+
+            ctx.fillStyle = '#1f2833';
+            ctx.fillRect(0, 450, LOGICAL_WIDTH, LOGICAL_HEIGHT - 450);
+
+            ctx.fillStyle = '#45a29e';
+            ctx.fillRect(300, 350, 200, 15);
+
+            ctx.strokeStyle = '#45a29e';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, 450);
+            ctx.lineTo(LOGICAL_WIDTH, 450);
+            ctx.stroke();
+
+            if (renderDevas && renderFreya) {
+                ctx.strokeStyle = latestRopeInfo.tension ? '#ff4757' : '#66fcf1';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(renderDevas.x, renderDevas.y - 15);
+                ctx.lineTo(renderFreya.x, renderFreya.y - 15);
+                ctx.stroke();
+
+                ctx.fillStyle = renderDevas.planted ? '#45a29e' : '#66fcf1';
+                ctx.fillRect(renderDevas.x - 15, renderDevas.y - 35, 30, 35);
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px sans-serif';
+                ctx.fillText('Devas' + (renderDevas.planted ? ' [⚓]' : ''), renderDevas.x - 25, renderDevas.y - 45);
+
+                ctx.fillStyle = renderFreya.planted ? '#45a29e' : '#ff6b6b';
+                ctx.fillRect(renderFreya.x - 15, renderFreya.y - 35, 30, 35);
+                ctx.fillText('Freya' + (renderFreya.planted ? ' [⚓]' : ''), renderFreya.x - 25, renderFreya.y - 45);
+            }
+
+            ctx.restore();
+
+            frameCount++;
+            const nowFps = performance.now();
+            if (nowFps - lastFpsUpdate >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastFpsUpdate = nowFps;
+                document.getElementById('fps').innerText = fps;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
