@@ -2,85 +2,2225 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Devas y Freya - Mundo 1: El Bosque</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#060913">
+<meta name="description" content="Devas & Freya — aventura cooperativa de cuerda para 2 jugadores. CAPA 1: motor base completo.">
+<title>Devas & Freya — La Cuerda que nos Une</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-body { margin: 0; padding: 0; background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; overflow: hidden; touch-action: none; }
-#game-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
-canvas { background: linear-gradient(to bottom, #1e293b, #0f172a); display: block; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-.ui-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding: 20px; text-align: center; }
-.hidden { display: none !important; }
-h1 { color: #38bdf8; font-size: 2.2rem; margin-bottom: 10px; }
-p { color: #94a3b8; font-size: 1rem; max-width: 450px; margin-bottom: 20px; }
-.btn { background: #2563eb; color: white; border: none; padding: 12px 24px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin: 8px; }
-.btn-green { background: #16a34a; }
-.btn-purple { background: #9333ea; }
-#mobile-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 140px; display: none; justify-content: space-between; padding: 10px 20px; pointer-events: none; z-index: 5; }
-.control-group { display: flex; gap: 10px; pointer-events: auto; align-items: flex-end; }
-.touch-btn { width: 60px; height: 60px; background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 50%; color: white; font-size: 1.2rem; font-weight: bold; display: flex; justify-content: center; align-items: center; }
-#hud { position: absolute; top: 15px; left: 20px; right: 20px; display: flex; justify-content: space-between; pointer-events: none; z-index: 5; font-weight: bold; font-size: 0.9rem; }
-.hud-panel { background: rgba(15, 23, 42, 0.8); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); }
+/* ═══════════════════════════════════════════════════════════════════
+DEVAS & FREYA · CAPA 1 · ESTILOS
+Paleta: noche alpina índigo + aurora (verde/violeta/magenta)
++ ámbar fogata + azul Devas + rosa Freya
+═══════════════════════════════════════════════════════════════════ */
+:root{
+--bg:#060913; --bg2:#0e1530; --panel:rgba(12,18,42,.93); --panel2:rgba(18,26,58,.95);
+--line:#2a3a6e; --line2:#3d5296;
+--ink:#eaf1ff; --mut:#9fb0d8; --dim:#6b7ca8;
+--gold:#ffd36e; --gold2:#f0a832; --goldD:#8a5f14;
+--blue:#5fb0ff; --blueD:#2b6fd0;
+--pink:#ff7ad0; --pinkD:#d84fa0; --hot:#ff3d81;
+--green:#3ef2b0; --violet:#b46bff; --red:#ff5f6d; --info:#6fc3ff;
+--disp:"Baloo 2",system-ui,sans-serif; --body:"Nunito",system-ui,sans-serif;
+--sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+--sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:var(--body);color:var(--ink);touch-action:none;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+button{font-family:inherit;cursor:pointer}
+.hidden{display:none!important}
+.scroll{overflow-y:auto;touch-action:pan-y;scrollbar-width:thin;scrollbar-color:var(--gold2) var(--bg2)}
+.scroll::-webkit-scrollbar{width:8px}
+.scroll::-webkit-scrollbar-track{background:var(--bg2);border-radius:8px}
+.scroll::-webkit-scrollbar-thumb{background:linear-gradient(var(--gold),var(--gold2));border-radius:8px}
+.scroll::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+
+#game{position:fixed;inset:0;display:block;image-rendering:pixelated}
+#vignette{position:fixed;inset:0;pointer-events:none;z-index:2;
+background:radial-gradient(ellipse at 50% 42%,transparent 55%,rgba(3,5,12,.55) 100%),
+linear-gradient(rgba(4,6,14,.5),transparent 18%)}
+
+/* ── Botones ── */
+.btn{border:0;border-radius:14px;padding:13px 20px;font-family:var(--disp);font-weight:800;font-size:16px;
+color:#241a00;background:linear-gradient(180deg,var(--gold),var(--gold2));
+box-shadow:0 5px 0 var(--goldD),0 8px 18px rgba(0,0,0,.45);transition:transform .07s,box-shadow .07s,filter .15s}
+.btn:hover{filter:brightness(1.07)}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--goldD)}
+.btn:disabled{filter:grayscale(.7) brightness(.7);cursor:default;transform:none}
+.btn.ghost{background:rgba(20,28,60,.7);color:var(--ink);border:1.5px solid var(--line2);box-shadow:0 4px 0 rgba(10,14,30,.9)}
+.btn.ghost:active{box-shadow:0 1px 0 rgba(10,14,30,.9)}
+.btn.danger{background:linear-gradient(180deg,#ff7d88,var(--red));color:#3a0509;box-shadow:0 5px 0 #7e1f28}
+.btn.danger:active{box-shadow:0 2px 0 #7e1f28}
+.btn.blue{background:linear-gradient(180deg,#7cc2ff,var(--blueD));color:#04122b;box-shadow:0 5px 0 #123a75}
+.btn.blue:active{box-shadow:0 2px 0 #123a75}
+.btn.sm{padding:9px 14px;font-size:13px;border-radius:11px}
+.ibtn{width:42px;height:42px;border-radius:12px;border:1.5px solid var(--line2);background:var(--panel);
+color:var(--ink);font-size:17px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(8,12,26,.9)}
+.ibtn:active{transform:translateY(2px);box-shadow:none}
+.ibtn.on{border-color:var(--green);background:rgba(62,242,176,.16)}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);
+border-radius:999px;padding:4px 11px;font-size:12px;font-weight:800;letter-spacing:.4px}
+
+/* ── HUD ── */
+#hud{position:fixed;top:calc(var(--sat) + 8px);left:calc(var(--sal) + 10px);right:calc(var(--sar) + 10px);
+z-index:10;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:start;pointer-events:none}
+#hud .col{display:flex;flex-direction:column;gap:4px;min-width:0}
+#hud .right{flex-direction:row;pointer-events:auto;gap:6px}
+#chipRole.devas{color:var(--blue);border-color:var(--blueD)}
+#chipRole.freya{color:var(--pink);border-color:var(--pinkD)}
+#chipRole.practice{color:var(--gold);border-color:var(--goldD)}
+#netDot{width:9px;height:9px;border-radius:50%;background:#5a6a92;flex:none}
+#netDot.ok{background:var(--green);box-shadow:0 0 8px var(--green)}
+#netDot.warn{background:var(--gold);box-shadow:0 0 8px var(--gold);animation:pulse 1s infinite}
+#netDot.off{background:var(--red)}
+@keyframes pulse{50%{opacity:.4}}
+#statLine{font-size:10.5px;color:var(--mut);font-weight:800;padding-left:3px;text-shadow:0 1px 2px #000;white-space:nowrap;font-variant-numeric:tabular-nums}
+#hud .center{align-items:center}
+#ropeWrap{width:min(210px,30vw);background:var(--panel);border:1px solid var(--line);border-radius:999px;
+padding:4px 9px;display:flex;align-items:center;gap:7px}
+#ropeWrap .ico{font-size:12px}
+#ropeBar{flex:1;height:8px;border-radius:6px;background:#101838;overflow:hidden;border:1px solid #1c2a55}
+#ropeFill{height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,var(--green),var(--info))}
+#ropeFill.taut{background:linear-gradient(90deg,var(--gold),var(--red))}
+#ropeFill.contract{background:linear-gradient(90deg,var(--gold),var(--pink))}
+#ropeVal{font-size:10.5px;font-weight:800;color:var(--gold);min-width:40px;text-align:right;font-variant-numeric:tabular-nums}
+#progWrap{width:min(210px,30vw);height:6px;border-radius:6px;background:rgba(10,15,34,.8);border:1px solid var(--line);overflow:hidden}
+#progFill{height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--pink),var(--gold));border-radius:6px}
+body.mode-menu #hud,body.mode-menu #touch,body.mode-menu #hint,body.mode-menu #banner{display:none}
+@media (max-width:430px){ .ibtn{width:36px;height:36px;font-size:15px;border-radius:10px} #hud{gap:6px} }
+
+/* ── Pista / objetivo ── */
+#hint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 18px);z-index:9;
+background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 16px;
+font-size:12.5px;font-weight:700;color:var(--mut);pointer-events:none;max-width:88vw;text-align:center;
+transition:opacity .4s;text-shadow:0 1px 2px #000}
+body.touch-on #hint{bottom:auto;top:calc(var(--sat) + 62px);font-size:11.5px;padding:6px 13px}
+body.banner-on #hint{display:none}
+#hint.fade{opacity:0}
+
+/* ── Controles táctiles ── */
+#touch{position:fixed;inset:0;z-index:20;pointer-events:none}
+body.dlg-open #touch,body.paused #touch,body.won #touch{display:none}
+.pad{position:absolute;bottom:calc(var(--sab) + 14px);display:flex;gap:12px;pointer-events:auto}
+.pad.left{left:calc(var(--sal) + 14px)}
+.pad.right{right:calc(var(--sar) + 14px);flex-direction:column;align-items:flex-end;gap:10px}
+.pad.right .row{display:flex;gap:10px}
+.tbtn{width:72px;height:72px;border-radius:50%;border:2px solid rgba(159,176,216,.55);
+background:rgba(16,24,54,.55);backdrop-filter:blur(4px);color:var(--ink);
+font-family:var(--disp);font-weight:800;font-size:13px;line-height:1.05;
+display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+box-shadow:0 4px 14px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.12);transition:background .08s,border-color .08s}
+.tbtn .k{font-size:9px;color:var(--dim);font-family:var(--body);font-weight:700}
+.tbtn.big{width:82px;height:82px;font-size:15px;border-color:rgba(255,211,110,.6)}
+.tbtn.arrow{font-size:26px}
+.tbtn.sm{width:62px;height:62px;font-size:10px}
+.tbtn.active,.tbtn:active{background:rgba(255,211,110,.3);border-color:var(--gold);color:#fff}
+.tbtn.anchor-on{background:rgba(62,242,176,.25);border-color:var(--green)}
+#btnSwitch{position:absolute;left:calc(var(--sal) + 14px);bottom:calc(var(--sab) + 104px);pointer-events:auto;
+border-radius:999px;padding:8px 13px;font-size:11.5px}
+@media (max-width:430px){
+.tbtn{width:62px;height:62px;font-size:11px}
+.tbtn.big{width:72px;height:72px;font-size:13px}
+.tbtn.sm{width:54px;height:54px;font-size:9px}
+.pad{gap:8px}.pad.right{gap:8px}.pad.right .row{gap:8px}
+#btnSwitch{bottom:calc(var(--sab) + 90px);font-size:10.5px;padding:7px 11px}
+}
+@media (max-width:360px){
+.tbtn{width:54px;height:54px}.tbtn.big{width:62px;height:62px}.tbtn.sm{width:46px;height:46px;font-size:8px}
+.pad{gap:6px;left:calc(var(--sal) + 10px)}.pad.right{gap:6px;right:calc(var(--sar) + 10px)}.pad.right .row{gap:6px}
+#btnSwitch{bottom:calc(var(--sab) + 78px)}
+}
+
+/* ── Menú ── */
+#menu{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+padding:calc(var(--sat) + 14px) 14px calc(var(--sab) + 14px);
+background:radial-gradient(ellipse at 50% 30%,rgba(20,30,66,.5),rgba(4,6,14,.86) 78%)}
+#menuCard{width:min(560px,94vw);max-height:100%;background:var(--panel);border:1px solid var(--line2);
+border-radius:22px;padding:24px 22px;box-shadow:0 24px 70px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08);
+display:flex;flex-direction:column;gap:14px;text-align:center}
+.title{font-family:var(--disp);font-weight:800;font-size:clamp(30px,7.5vw,50px);line-height:1.02;letter-spacing:1px}
+.title .d{background:linear-gradient(180deg,#a8d6ff,var(--blue) 55%,var(--blueD));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 rgba(6,10,24,.9))}
+.title .f{background:linear-gradient(180deg,#ffc4ea,var(--pink) 55%,var(--pinkD));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 rgba(6,10,24,.9))}
+.title .amp{color:var(--gold);font-size:.62em;vertical-align:.12em;padding:0 4px}
+.tagline{color:var(--mut);font-size:13.5px;font-weight:700;margin-top:-6px}
+.ropeDiv{display:block;margin:0 auto}
+.menuBtns{display:flex;flex-direction:column;gap:10px}
+#diffRow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.diffChip{border-radius:999px;border:1.5px solid var(--line2);background:rgba(16,24,54,.6);color:var(--mut);
+padding:7px 14px;font-size:12px;font-weight:800}
+.diffChip.sel{border-color:var(--gold);color:var(--gold);background:rgba(255,211,110,.12)}
+.diffNote{font-size:11px;color:var(--dim);min-height:14px}
+details.howto{text-align:left;border:1px solid var(--line);border-radius:14px;background:rgba(10,15,34,.6)}
+details.howto summary{cursor:pointer;padding:11px 14px;font-weight:800;font-size:13.5px;color:var(--gold);list-style:none}
+details.howto summary::-webkit-details-marker{display:none}
+.howto-body{max-height:210px;padding:0 14px 12px;font-size:12.5px;color:var(--mut);line-height:1.55}
+.howto-body h4{color:var(--ink);font-size:12.5px;margin:8px 0 3px}
+.howto-body b{color:var(--gold)}
+.kb{display:inline-block;background:#1a2450;border:1px solid var(--line2);border-bottom-width:2.5px;
+border-radius:6px;padding:0 6px;font-size:11px;font-weight:800;color:var(--ink);margin:0 1px}
+.roomPanel{border:1.5px dashed var(--gold2);border-radius:16px;padding:14px;background:rgba(255,211,110,.05);
+display:flex;flex-direction:column;gap:9px;text-align:left}
+.roomPanel .lbl{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:1px;text-transform:uppercase}
+.codeBig{font-family:var(--disp);font-size:30px;font-weight:800;letter-spacing:6px;color:var(--ink);text-align:center;
+background:#0a1130;border-radius:12px;padding:6px;border:1px solid var(--line)}
+.linkBox{font-size:11.5px;color:var(--info);background:#0a1130;border:1px solid var(--line);border-radius:10px;
+padding:8px 10px;word-break:break-all;max-height:56px}
+.roomRow{display:flex;gap:8px;flex-wrap:wrap}
+.roomStatus{font-size:12.5px;font-weight:700;color:var(--mut);display:flex;align-items:center;gap:8px}
+.spin{width:14px;height:14px;border-radius:50%;border:2.5px solid var(--line2);border-top-color:var(--gold);animation:rot 1s linear infinite;flex:none}
+@keyframes rot{to{transform:rotate(360deg)}}
+.menuFoot{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;font-size:10.5px;color:var(--dim)}
+.menuFoot .chip{font-size:10px;padding:3px 9px;color:var(--mut)}
+#spriteStatus.ok{color:var(--green);border-color:rgba(62,242,176,.4)}
+#spriteStatus.warn{color:var(--gold);border-color:var(--goldD)}
+.dedica{font-size:11px;color:var(--dim);font-style:italic}
+
+/* ── Banner de conexión ── */
+#banner{position:fixed;top:calc(var(--sat) + 62px);left:50%;transform:translateX(-50%);z-index:30;
+background:var(--panel2);border:1px solid var(--gold2);border-radius:16px;padding:11px 15px;
+display:flex;align-items:center;gap:10px;max-width:min(520px,92vw);box-shadow:0 12px 40px rgba(0,0,0,.5);flex-wrap:wrap}
+#bannerText{font-size:12.5px;font-weight:700;color:var(--ink);flex:1;min-width:140px}
+#banner .btn{white-space:nowrap}
+
+/* ── Diálogo (novela visual) ── */
+#dialog{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;
+padding:16px 14px calc(var(--sab) + 18px);background:linear-gradient(transparent 30%,rgba(3,5,12,.82))}
+.dlgBox{width:min(760px,96vw);background:var(--panel2);border:2px solid var(--gold2);border-radius:20px;
+padding:16px;display:flex;gap:16px;box-shadow:0 20px 60px rgba(0,0,0,.65),0 0 0 4px rgba(255,211,110,.08);
+animation:dlgIn .28s cubic-bezier(.2,1.4,.4,1)}
+@keyframes dlgIn{from{transform:translateY(40px);opacity:0}}
+.portrait{width:112px;height:112px;flex:none;border-radius:14px;background:linear-gradient(180deg,#141d44,#0a0f26);
+border:1.5px solid var(--line2);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.portrait img,.portrait canvas{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+.dlgMain{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+#dlgName{font-family:var(--disp);font-weight:800;font-size:19px}
+#dlgName.devas{color:var(--blue)} #dlgName.freya{color:var(--pink)}
+#dlgText{font-size:15px;line-height:1.5;min-height:66px;max-height:120px;color:var(--ink);padding-right:4px}
+.dlgFoot{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.confChip{font-size:11px;font-weight:800;border-radius:999px;padding:4px 10px;border:1px solid var(--line2);color:var(--dim)}
+.confChip.a{border-color:var(--blueD)} .confChip.b{border-color:var(--pinkD)}
+.confChip.ok{color:var(--green);border-color:rgba(62,242,176,.5);background:rgba(62,242,176,.08)}
+#btnDlg{margin-left:auto}
+@media (max-width:560px){
+.dlgBox{gap:12px;padding:13px}.portrait{width:84px;height:84px}
+#dlgText{font-size:13.5px;min-height:58px}#dlgName{font-size:16px}
+}
+
+/* ── Overlays ── */
+.overlay{position:fixed;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;
+background:rgba(3,5,12,.78);padding:16px;backdrop-filter:blur(3px)}
+.ovCard{width:min(440px,94vw);max-height:92%;background:var(--panel2);border:1px solid var(--line2);border-radius:20px;
+padding:22px;display:flex;flex-direction:column;gap:10px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.ovCard h2{font-family:var(--disp);font-weight:800;font-size:26px;color:var(--gold)}
+.ovCard .legend{font-size:11.5px;color:var(--mut);text-align:left;line-height:1.8;background:rgba(10,15,34,.6);
+border:1px solid var(--line);border-radius:12px;padding:10px 12px;max-height:140px}
+#winOv .ovCard{border-color:var(--gold2);box-shadow:0 0 60px rgba(255,211,110,.15),0 24px 70px rgba(0,0,0,.6)}
+.winStats{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.winStat{background:rgba(10,15,34,.7);border:1px solid var(--line);border-radius:14px;padding:9px 14px;min-width:82px}
+.winStat .v{font-family:var(--disp);font-size:22px;font-weight:800;color:var(--ink)}
+.winStat .l{font-size:10px;color:var(--mut);font-weight:800;letter-spacing:.6px;text-transform:uppercase}
+.winLine{color:var(--pink);font-size:13.5px;font-weight:700;font-style:italic}
+#countOv{position:fixed;inset:0;z-index:44;display:flex;align-items:center;justify-content:center;pointer-events:none;background:rgba(3,5,12,.35)}
+#countNum{font-family:var(--disp);font-weight:800;font-size:clamp(90px,22vw,150px);color:var(--gold);
+text-shadow:0 6px 0 rgba(6,10,24,.9),0 0 60px rgba(255,211,110,.4)}
+#fadeOv{position:fixed;inset:0;z-index:46;background:#04060e;pointer-events:none;opacity:0}
+#toast{position:fixed;top:calc(var(--sat) + 108px);left:50%;transform:translateX(-50%) translateY(-8px);z-index:60;
+background:var(--panel2);border:1px solid var(--gold2);color:var(--ink);border-radius:999px;padding:9px 18px;
+font-size:13px;font-weight:800;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;
+max-width:90vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;background:#060913;z-index:99}
 </style>
 </head>
-<body>
-<div id="game-container">
-<div id="hud" class="hidden">
-<div class="hud-panel" id="hud-room">Mundo 1: El Bosque</div>
-<div class="hud-panel" id="hud-rope">Cuerda: 120px Máx</div>
+<body class="mode-menu">
+<noscript>Este juego necesita JavaScript activado.</noscript>
+
+<canvas id="game"></canvas>
+<div id="vignette"></div>
+
+<!-- ═══ HUD ═══ -->
+<header id="hud">
+<div class="col">
+<span class="chip" id="chipRole"><span id="netDot"></span><span id="chipRoleTxt">—</span></span>
+<span id="statLine">0:00 · 🪂0 · 💛0 · ✦0/6</span>
 </div>
-<div id="screen-menu" class="ui-screen">
-<h1>Devas & Freya</h1>
-<p>Versión 0.3.0 - Prueba de Físicas y Mundo 1</p>
-<button class="btn btn-green" onclick="startGame()">Crear Sala Privada / Jugar</button>
+<div class="col center">
+<div id="ropeWrap"><span class="ico">🪢</span><div id="ropeBar"><div id="ropeFill"></div></div><span id="ropeVal">120px</span></div>
+<div id="progWrap"><div id="progFill"></div></div>
 </div>
-<canvas id="gameCanvas" width="800" height="450"></canvas>
-<div id="mobile-controls">
-<div class="control-group">
-<div class="touch-btn" ontouchstart="setTouch('left', true)" ontouchend="setTouch('left', false)">◄</div>
-<div class="touch-btn" ontouchstart="setTouch('right', true)" ontouchend="setTouch('right', false)">►</div>
+<div class="col right">
+<button class="ibtn hidden" id="btnAI" title="Compañera IA (práctica)">🤖</button>
+<button class="ibtn" id="btnSound" title="Sonido (M)">🔊</button>
+<button class="ibtn" id="btnPause" title="Pausa / Menú (Esc)">☰</button>
 </div>
-<div class="control-group">
-<div class="touch-btn" style="background: rgba(220, 38, 38, 0.4);" ontouchstart="setTouch('anchor', true)" ontouchend="setTouch('anchor', false)">📌</div>
-<div class="touch-btn" style="background: rgba(37, 99, 235, 0.4);" ontouchstart="setTouch('jump', true)" ontouchend="setTouch('jump', false)">⬆</div>
+</header>
+
+<div id="hint" class="fade"></div>
+
+<!-- ═══ Controles táctiles ═══ -->
+<div id="touch">
+<div class="pad left">
+<button class="tbtn arrow" data-act="left" aria-label="Izquierda">◀</button>
+<button class="tbtn arrow" data-act="right" aria-label="Derecha">▶</button>
+</div>
+<div class="pad right">
+<button class="tbtn big" data-act="jump">SALTAR<span class="k">↑ / W</span></button>
+<div class="row">
+<button class="tbtn sm" data-act="down">AGACHAR<span class="k">↓ / S</span></button>
+<button class="tbtn sm" data-act="anchor" id="tAnchor">ANCLAR<span class="k">E</span></button>
+<button class="tbtn sm" data-act="contract" id="tContract">CONTRAER<br>CUERDA<span class="k">mantén Q</span></button>
+</div>
+</div>
+<button class="btn ghost sm hidden" id="btnSwitch">⇄ FREYA <span style="opacity:.6">(TAB)</span></button>
+</div>
+
+<!-- ═══ Banner de conexión ═══ -->
+<div id="banner" class="hidden">
+<div class="spin" id="bannerSpin"></div>
+<div id="bannerText">…</div>
+<button class="btn ghost sm" id="btnBannerA">🎮 Práctica</button>
+<button class="btn sm" id="btnBannerB">🏠 Menú</button>
+</div>
+
+<!-- ═══ Menú principal ═══ -->
+<div id="menu">
+<div id="menuCard" class="scroll">
+<div>
+<div class="title"><span class="d">DEVAS</span><span class="amp">&</span><span class="f">FREYA</span></div>
+<svg class="ropeDiv" width="230" height="26" viewBox="0 0 230 26" aria-hidden="true">
+<defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#5fb0ff"/><stop offset=".5" stop-color="#ffd36e"/><stop offset="1" stop-color="#ff7ad0"/>
+</linearGradient></defs>
+<path d="M12,16 C60,4 170,30 218,12" fill="none" stroke="url(#rg)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 7"/>
+<circle cx="12" cy="16" r="6" fill="none" stroke="#5fb0ff" stroke-width="3"/>
+<circle cx="218" cy="12" r="6" fill="none" stroke="#ff7ad0" stroke-width="3"/>
+</svg>
+<div class="tagline">Una cuerda. Dos corazones. Una cima. 🏔️</div>
+</div>
+
+<div class="menuBtns" id="mainBtns">
+<button class="btn" id="btnHost">🏠 Crear Sala (Jugar como Devas)</button>
+<button class="btn blue" id="btnPractice">🎮 Práctica local (1 dispositivo)</button>
+<button class="btn ghost hidden" id="btnResume">↻ Reanudar sala</button>
+<div id="diffRow">
+<button class="diffChip sel" data-diff="adventure">⚔️ Aventura</button>
+<button class="diffChip" data-diff="stroll">🌸 Paseo</button>
+</div>
+<div class="diffNote" id="diffNote">Caída: ambos vuelven al último campamento.</div>
+</div>
+
+<div class="roomPanel hidden" id="roomPanel">
+<span class="lbl">Código de sala</span>
+<div class="codeBig" id="roomCode">—</div>
+<span class="lbl">Enlace para Freya</span>
+<div class="linkBox scroll" id="roomLink">—</div>
+<div class="roomRow">
+<button class="btn sm" id="btnCopy">📋 Copiar enlace</button>
+<button class="btn ghost sm" id="btnShare">📤 Compartir</button>
+</div>
+<div class="roomStatus"><div class="spin"></div><span id="roomStatus">Esperando a Freya…</span></div>
+<div style="font-size:10.5px;color:var(--dim)">💡 Para jugar entre dos dispositivos, publica este archivo en un hosting (GitHub Pages, Netlify…). En local funciona la Práctica.</div>
+</div>
+
+<div class="roomPanel hidden" id="joinPanel">
+<span class="lbl">Uniéndose como Freya 💗</span>
+<div class="codeBig" id="joinCode">—</div>
+<div class="roomStatus"><div class="spin"></div><span id="joinStatus">Conectando con Devas…</span></div>
+<button class="btn ghost sm" id="btnCancelJoin">Cancelar y volver al menú</button>
+</div>
+
+<details class="howto" id="howto">
+<summary>📖 Cómo jugar</summary>
+<div class="scroll howto-body">
+<h4>🎯 Objetivo</h4>
+Lleguen <b>juntos</b> a la fogata de la cima recogiendo los <b>✦ cristales de aurora</b>. Están unidos por una cuerda de <b>120 px</b>: si uno cae, el otro lo sostiene y lo rescata.
+<h4>⌨️ PC</h4>
+<span class="kb">←</span><span class="kb">→</span> / <span class="kb">A</span><span class="kb">D</span> moverse ·
+<span class="kb">↑</span>/<span class="kb">W</span>/<span class="kb">Espacio</span> saltar ·
+<span class="kb">↓</span>/<span class="kb">S</span> agacharse ·
+<span class="kb">E</span> anclar/desanclar ·
+<span class="kb">Q</span> (mantener) <b>Contraer Cuerda</b> ·
+<span class="kb">Shift</span> correr · <span class="kb">Tab</span> cambiar personaje (práctica) · <span class="kb">Esc</span> pausa · <span class="kb">M</span> sonido
+<h4>📱 Móvil</h4>
+Botones táctiles grandes en pantalla. Mantén dirección un momento para <b>correr</b> automáticamente.
+<h4>🪢 Mecánicas</h4>
+<b>Anclar</b>: clavas tu espada y la cuerda no te moverá. <b>Contraer Cuerda</b> (mantener): baja de 120 px a 0 px y subes a tu pareja; al soltar vuelve a 120 px. Colgado puedes balancearte y trepar con salto. Los <b>campamentos</b> (banderas) guardan el progreso. Las zonas de 💬 pausan el juego: <b>ambos</b> deben pulsar Continuar.
+<h4>🤖 Práctica</h4>
+En un solo dispositivo controlas a los dos con <span class="kb">Tab</span>. El botón 🤖 activa una compañera IA que te sigue y te rescata si caes.
+<h4>📊 Marcador</h4>
+⏱ tiempo · 🪂 caídas · 💛 rescates · ✦ cristales
+</div>
+</details>
+
+<div class="menuFoot">
+<span class="chip">CAPA 1 · Motor base</span>
+<span class="chip" id="spriteStatus">Sprites: cargando…</span>
+<span class="chip" id="netNote">P2P: listo</span>
+</div>
+<div class="dedica">Hecho para escalar juntos 💛</div>
+</div>
+</div>
+
+<!-- ═══ Diálogo / cinemática ═══ -->
+<div id="dialog" class="hidden">
+<div class="dlgBox">
+<div class="portrait">
+<img id="dlgImg" alt="" class="hidden">
+<canvas id="dlgCanvas" width="112" height="112"></canvas>
+</div>
+<div class="dlgMain">
+<div id="dlgName">—</div>
+<div id="dlgText" class="scroll"></div>
+<div class="dlgFoot">
+<span class="confChip a" id="confA">Devas …</span>
+<span class="confChip b" id="confB">Freya …</span>
+<button class="btn sm" id="btnDlg">Continuar ▶</button>
 </div>
 </div>
 </div>
+</div>
+
+<!-- ═══ Pausa ═══ -->
+<div id="pauseOv" class="overlay hidden">
+<div class="ovCard scroll">
+<h2>⏸ Pausa</h2>
+<button class="btn" id="btnResumeP">▶ Reanudar</button>
+<button class="btn ghost" id="btnRestartP">↻ Reiniciar nivel</button>
+<button class="btn ghost hidden" id="btnAIP">🤖 Compañera IA: activada</button>
+<button class="btn ghost" id="btnSoundP">🔊 Sonido: activado</button>
+<button class="btn ghost" id="btnTouchP">🎮 Táctil: auto</button>
+<div class="legend scroll">
+<b style="color:var(--gold)">PC:</b> <span class="kb">←→</span> mover · <span class="kb">↑</span> saltar · <span class="kb">↓</span> agachar · <span class="kb">E</span> anclar · <span class="kb">Q</span> contraer (mantener) · <span class="kb">Shift</span> correr · <span class="kb">Tab</span> cambiar (práctica)<br>
+<b style="color:var(--gold)">Móvil:</b> botones en pantalla. <b style="color:var(--pink)">Contraer Cuerda</b> rescata a tu pareja colgada.<br>
+<b style="color:var(--gold)">Marcador:</b> ⏱ tiempo · 🪂 caídas · 💛 rescates · ✦ cristales
+</div>
+<button class="btn danger" id="btnMenuP">🏠 Volver al menú principal</button>
+</div>
+</div>
+
+<!-- ═══ Victoria ═══ -->
+<div id="winOv" class="overlay hidden">
+<div class="ovCard scroll">
+<h2>🔥 ¡Cima alcanzada!</h2>
+<div class="winLine">«La cima es más bonita contigo.» 💛</div>
+<div class="winStats">
+<div class="winStat"><div class="v" id="winTime">0:00</div><div class="l">Tiempo</div></div>
+<div class="winStat"><div class="v" id="winFalls">0</div><div class="l">Caídas</div></div>
+<div class="winStat"><div class="v" id="winRes">0</div><div class="l">Rescates</div></div>
+<div class="winStat"><div class="v" id="winShards">0/6</div><div class="l">Cristales</div></div>
+</div>
+<button class="btn" id="btnAgain">↻ Jugar de nuevo</button>
+<button class="btn ghost" id="btnWinMenu">🏠 Menú principal</button>
+</div>
+</div>
+
+<div id="countOv" class="hidden"><div id="countNum">3</div></div>
+<div id="fadeOv"></div>
+<div id="toast"></div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-let gameState = 'MENU';
-if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-document.getElementById('mobile-controls').style.display = 'flex';
+'use strict';
+/* ═══════════════════════════════════════════════════════════════════════
+DEVAS & FREYA · CAPA 1 · MOTOR BASE (archivo único, modular)
+
+[0] ANIM_CONFIG rutas exactas de sprites (4×3 = 12 frames)
+[1] CONSTANTES física, cuerda (MAX 120 / MIN 0), estado global
+[2] GAME_DATA mundos, plataformas (gap exacto 100px), diálogos
+[3] UTILIDADES math, DOM, toast, sesión
+[4] AUDIO WebAudio sintetizado (sin assets externos)
+[5] SPRITES cargador + máquina de estados de animación
+[6] MUNDO/FÍSICA jugadores, colisiones, cuerda, rescate, checkpoints
+[7] PARTÍCULAS/FX polvo, chispas, corazones, confeti, shake
+[8] RENDER fondo alpino prerenderizado, cámara, dibujo
+[9] INPUT teclado + táctil multicontacto + IA de práctica
+[10] RED P2P PeerJS host/guest, persistencia, reconexión
+[11] UI menú, diálogo VN, pausa, victoria, HUD
+[12] CONTROLADOR modos, bucle de paso fijo, arranque
+
+➕ AÑADIR MUNDO: agrega un objeto a GAME_DATA.worlds (mismo formato).
+➕ AÑADIR DIÁLOGO: agrega {id, zone, speaker, name, lines[]} al mundo.
+═══════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════ [0] ANIM_CONFIG · RUTAS EXACTAS ═══════════ */
+const ANIM_CONFIG = {
+cols: 4, rows: 3, totalFrames: 12, fps: 12,
+devas: {
+caminar: { src: 'assets/devas/01_Caminar/hoja_sprites_4x3.png', gif: 'assets/devas/01_Caminar/animacion_original.gif' },
+saltar: { src: 'assets/devas/02_Saltar/hoja_sprites_4x3.png' },
+correr: { src: 'assets/devas/03_Correr/hoja_sprites_4x3.png' },
+agacharse: { src: 'assets/devas/04_Agacharse/hoja_sprites_4x3.png' },
+caer: { src: 'assets/devas/05_Caer/hoja_sprites_4x3.png' },
+colgado: { src: 'assets/devas/06_Colgado_cuerda/hoja_sprites_4x3.png' },
+rescatado: { src: 'assets/devas/07_Ser_rescatado_por_Freya/hoja_sprites_4x3.png' },
+rescatar: { src: 'assets/devas/08_Rescatar_Freya_LIMPIO/hoja_sprites_4x3.png' },
+anclar: { src: 'assets/devas/09_Anclarse_espada/hoja_sprites_4x3.png' },
+desanclar: { src: 'assets/devas/10_Desanclarse_espada/hoja_sprites_4x3.png' }
+},
+freya: {
+caminar: { src: 'assets/freya/01_caminar/hoja_sprites_4x3.png', gif: 'assets/freya/01_caminar/animacion_original.gif' },
+saltar: { src: 'assets/freya/02_saltar/hoja_sprites_4x3.png' },
+correr: { src: 'assets/freya/06_correr/hoja_sprites_4x3.png' },
+agacharse: { src: 'assets/freya/07_agacharse/hoja_sprites_4x3.png' },
+caer: { src: 'assets/freya/08_caer/hoja_sprites_4x3.png' },
+colgado: { src: 'assets/freya/04_colgada/hoja_sprites_4x3.png' },
+rescatado: { src: 'assets/freya/05_ser_rescatada/hoja_sprites_4x3.png' },
+rescatar: { src: 'assets/freya/09_rescatar_devas/hoja_sprites_4x3.png' },
+anclar: { src: 'assets/freya/03_anclarse/hoja_sprites_4x3.png' },
+desanclar: { src: 'assets/freya/10_desanclarse/hoja_sprites_4x3.png' }
 }
-const MAX_ROPE_LENGTH = 120;
-let player1 = {x: 100, y: 300, vx: 0, vy: 0, width: 30, height: 40, color: '#38bdf8', name: 'Devas', grounded: false};
-let player2 = {x: 160, y: 300, vx: 0, vy: 0, width: 30, height: 40, color: '#ec4899', name: 'Freya', grounded: false};
+};
 
-// Plataformas del Mundo 1 (Distancias verticales <= 90)
-const platforms = [
-{x: 50, y: 380, w: 200, h: 20},
-{x: 280, y: 310, w: 140, h: 20},
-{x: 450, y: 230, w: 140, h: 20},
-{x: 620, y: 160, w: 180, h: 20}
- ];
-const touchInput = {left: false, right: false, jump: false, anchor: false};
-function setTouch(a, s) { touchInput[a] = s; }
+/* ═══════════ [1] CONSTANTES Y ESTADO GLOBAL ═══════════ */
+const MAX_ROPE = 120; // longitud máxima exacta (px)
+const MIN_ROPE = 0; // contracción total (px)
+const GAP = 100; // separación exacta entre plataformas (px)
+const STEP = 1 / 60;
+const VIEW_H = 540;
+const PHYS = {
+g: 2300, jump: 770, walk: 175, run: 265, accelG: 2600, accelA: 1600,
+maxFall: 980, swing: 520, climb: 430, climbCd: 0.45,
+contractSpeed: 78, expandSpeed: 145, ropeSmooth: 0.16,
+w: 36, hStand: 54, hCrouch: 34, coyote: 0.10, jumpBuf: 0.12
+};
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const PEER_PREFIX = 'df-c1-';
 
-function startGame() {
-document.getElementById('screen-menu').classList.add('hidden');
-document.getElementById('hud').classList.remove('hidden');
-gameState = 'PLAYING';
+const ctl = {
+mode: 'menu', role: null, diff: 'adventure', activeChar: 'devas', aiAssist: true,
+started: false, paused: {}, count: 0, lastCountN: -1, fade: 0, awayT: 0,
+dialog: null, playT: 0, falls: 0, rescues: 0, checkpoint: 0, shards: 0,
+won: false, winDelay: 0, confettiT: 0, emberT: 0
+};
+const cam = { x: 480, y: 830, shake: 0, snap: false };
+let world = null;
+const parts = [];
+
+/* ═══════════ [2] GAME_DATA · MUNDOS Y CINEMÁTICAS ═══════════
+Separación exacta de 100px (GAP) entre plataformas consecutivas:
+huecos horizontales de 100px y/o escalones verticales de 100px.
+Las móviles oscilan ±50px alrededor de su base (no invaden el hueco).
+type 'solid' = bloque sólido · 'pad' = plataforma de una vía. */
+const GAME_DATA = { worlds: [
+{
+id: 'mundo-1', name: 'Mundo 1 · Cumbres del Vínculo',
+w: 3200, h: 1300, deathY: 1260,
+spawn: { devas: { x: 120, y: 846 }, freya: { x: 190, y: 846 } },
+platforms: [
+{ x: -60, y: 900, w: 420, h: 360, type: 'solid' },
+{ x: 460, y: 900, w: 140, h: 18, type: 'pad' }, // hueco 100
+{ x: 600, y: 800, w: 140, h: 18, type: 'pad' }, // escalón +100
+{ x: 740, y: 700, w: 140, h: 18, type: 'pad' }, // escalón +100
+{ x: 980, y: 700, w: 120, h: 18, type: 'pad', move: { axis: 'y', range: 50, speed: 1.20, phase: 0 } },
+{ x: 1200, y: 600, w: 140, h: 18, type: 'pad' }, // hueco 100 · +100
+{ x: 1440, y: 600, w: 120, h: 18, type: 'pad', move: { axis: 'x', range: 50, speed: 1.00, phase: 1.6 } },
+{ x: 1660, y: 600, w: 280, h: 660, type: 'solid' }, // mirador
+{ x: 2040, y: 500, w: 140, h: 18, type: 'pad' }, // hueco 100 · +100
+{ x: 2180, y: 400, w: 140, h: 18, type: 'pad' }, // escalón +100
+{ x: 2420, y: 300, w: 120, h: 18, type: 'pad', move: { axis: 'y', range: 50, speed: 1.35, phase: 3.1 } },
+{ x: 2640, y: 200, w: 460, h: 1060,type: 'solid' } // CIMA
+ ],
+shards: [ {x:670,y:756}, {x:1270,y:556}, {x:1800,y:556}, {x:2110,y:456}, {x:2250,y:356}, {x:2800,y:156} ],
+checkpoints: [
+{ zone: { x: -60, y: 760, w: 420, h: 140 }, a: { x: 120, y: 846 }, b: { x: 190, y: 846 }, flag: null },
+{ zone: { x: 1660, y: 470, w: 280, h: 130 }, a: { x: 1720, y: 546 }, b: { x: 1790, y: 546 }, flag: { x: 1755, y: 600 } },
+{ zone: { x: 2180, y: 270, w: 140, h: 130 }, a: { x: 2200, y: 346 }, b: { x: 2258, y: 346 }, flag: { x: 2250, y: 400 } }
+ ],
+goal: { x: 2920, y: 110, w: 160, h: 90, fire: { x: 3000, y: 200 } },
+signs: [
+{ x: 300, y: 900, text: '← → muévete · ↑ salta' },
+{ x: 770, y: 700, text: 'Mantén dirección: ¡CORRER!' },
+{ x: 1700, y: 600, text: 'E: ANCLAR · Q: contraer cuerda' },
+{ x: 2065, y: 500, text: '¡Carrera y salto… o rescátense!' }
+ ],
+dialogs: [
+{ id: 'd1', zone: { x: 40, y: 770, w: 320, h: 130 }, speaker: 'devas', name: 'Devas', lines: [
+'¡Freya! Dicen que desde esta cima se ve el amanecer más bonito del mundo… y quiero verlo contigo.',
+'Estamos unidos por esta cuerda de 120 px. Si uno cae, el otro lo sostiene. ¿Lista, chaparrita? 💛' ] },
+{ id: 'd2', zone: { x: 1660, y: 470, w: 280, h: 130 }, speaker: 'freya', name: 'Freya', lines: [
+'Si te caes, clava tu espada con ANCLAR y mantén CONTRAER CUERDA: yo te subiré hasta aquí.',
+'Y si un salto es demasiado grande, toma carrera y salta… que para eso estamos los dos. ✨' ] },
+{ id: 'd3', zone: { x: 2640, y: 70, w: 220, h: 130 }, speaker: 'freya', name: 'Freya', lines: [
+'¡El último ascensor de hielo, Devas! Ya casi huelo la fogata…',
+'Juntos, como siempre. El amanecer es nuestro. 🔥' ] }
+]
+}
+] };
+
+/* ═══════════ [3] UTILIDADES ═══════════ */
+const (id));
+
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const approach = (v, t, d) => v < t ? Math.min(v + d, t) : Math.max(v - d, t);
+const rand = (a, b) => a + Math.random() * (b - a);
+const dist2 = (ax, ay, bx, by) => { const dx = bx - ax, dy = by - ay; return Math.sqrt(dx * dx + dy * dy); };
+const inRect = (px, py, pw, ph, r) => px < r.x + r.w && px + pw > r.x && py < r.y + r.h && py + ph > r.y;
+const fmtTime = s => { s = Math.floor(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+function mulberry32(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function rr(c, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+
+let toastQ = [], toastT = 0;
+function toast(msg, dur = 2.2) { toastQ.push({ msg, dur }); }
+function tickToast(dt) {
+if (toastT > 0) { toastT -= dt; if (toastT <= 0) D.toast.classList.remove('show'); }
+else if (toastQ.length) { const t = toastQ.shift(); D.toast.textContent = t.msg; D.toast.classList.add('show'); toastT = t.dur; }
+}
+let hintT = 0;
+function setHint(txt, dur = 6) { D.hint.textContent = txt; D.hint.classList.remove('fade'); hintT = dur; }
+function tickHint(dt) { if (hintT > 0) { hintT -= dt; if (hintT <= 0) D.hint.classList.add('fade'); } }
+
+const store = {
+get(k) { try { return JSON.parse(sessionStorage.getItem(k)); } catch (e) { return null; } },
+set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+del(k) { try { sessionStorage.removeItem(k); } catch (e) {} },
+lget(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
+lset(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+};
+
+/* ═══════════ [4] AUDIO · WebAudio sintetizado ═══════════ */
+const SFX = {
+ctx: null, master: null, enabled: store.lget('df1.sound', '1') === '1',
+nextChord: 0, chordIdx: 0, nextBell: 0, windFilter: null,
+init() {
+if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+this.ctx = new AC();
+this.master = this.ctx.createGain(); this.master.gain.value = this.enabled ? 1 : 0;
+this.master.connect(this.ctx.destination);
+const len = this.ctx.sampleRate * 2, buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+const d = buf.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+const src = this.ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+this.windFilter = this.ctx.createBiquadFilter(); this.windFilter.type = 'bandpass'; this.windFilter.frequency.value = 380; this.windFilter.Q.value = 0.6;
+const wg = this.ctx.createGain(); wg.gain.value = 0.035;
+src.connect(this.windFilter); this.windFilter.connect(wg); wg.connect(this.master); src.start();
+this.nextChord = this.ctx.currentTime + 0.5; this.nextBell = this.ctx.currentTime + 2;
+},
+setEnabled(v) { this.enabled = v; store.lset('df1.sound', v ? '1' : '0'); if (this.master) this.master.gain.value = v ? 1 : 0; updateSoundUI(); },
+tone(f0, f1, dur, type, vol, when = 0) {
+if (!this.ctx || !this.enabled) return;
+const t = this.ctx.currentTime + when, o = this.ctx.createOscillator(), g = this.ctx.createGain();
+o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur);
+g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+o.connect(g); g.connect(this.master); o.start(t); o.stop(t + dur + 0.05);
+},
+noise(dur, freq, vol, when = 0) {
+if (!this.ctx || !this.enabled) return;
+const t = this.ctx.currentTime + when, n = Math.floor(this.ctx.sampleRate * dur);
+const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate), d = buf.getChannelData(0);
+for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+const s = this.ctx.createBufferSource(); s.buffer = buf;
+const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq;
+const g = this.ctx.createGain(); g.gain.value = vol;
+s.connect(f); f.connect(g); g.connect(this.master); s.start(t);
+},
+play(kind) {
+if (!this.ctx || !this.enabled) return;
+switch (kind) {
+case 'jump': this.tone(320, 580, 0.13, 'square', 0.10); break;
+case 'land': this.noise(0.09, 420, 0.30); this.tone(150, 90, 0.07, 'triangle', 0.12); break;
+case 'anchor': this.tone(880, 880, 0.04, 'square', 0.12); this.tone(1320, 1180, 0.09, 'square', 0.09, 0.045); this.noise(0.05, 2400, 0.10); break;
+case 'unanchor': this.tone(1180, 1420, 0.08, 'square', 0.08); break;
+case 'tick': this.tone(1900, 1750, 0.022, 'square', 0.055); break;
+case 'climb': this.tone(420, 640, 0.09, 'triangle', 0.09); break;
+case 'shard': [1047, 1319, 1568].forEach((f, i) => this.tone(f, f, 0.1, 'sine', 0.09, i * 0.055)); break;
+case 'rescue': [523, 659, 784, 1047].forEach((f, i) => this.tone(f, f, 0.11, 'triangle', 0.11, i * 0.085)); break;
+case 'checkpoint': [392, 523, 659].forEach((f, i) => this.tone(f, f, 0.13, 'triangle', 0.11, i * 0.09)); break;
+case 'fall': this.tone(620, 170, 0.5, 'sawtooth', 0.10); this.noise(0.2, 300, 0.2, 0.42); break;
+case 'win': [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, f, 0.16, 'triangle', 0.12, i * 0.12)); break;
+case 'type': this.tone(1250, 1100, 0.016, 'square', 0.03); break;
+case 'ui': this.tone(700, 820, 0.05, 'triangle', 0.08); break;
+case 'count': this.tone(880, 880, 0.08, 'square', 0.10); break;
+case 'go': this.tone(1175, 1175, 0.2, 'square', 0.11); break;
+case 'heart': this.tone(880, 1320, 0.16, 'sine', 0.09); break;
+}
+},
+update() {
+if (!this.ctx || !this.enabled) return;
+const t = this.ctx.currentTime;
+if (this.windFilter) this.windFilter.frequency.value = 340 + Math.sin(t * 0.35) * 140;
+if (t >= this.nextChord) {
+const chords = [[220, 277, 330], [196, 247, 294], [175, 220, 262], [196, 247, 294]];
+const c = chords[this.chordIdx % 4]; this.chordIdx++;
+c.forEach(f => {
+const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+o.type = 'triangle'; o.frequency.value = f;
+g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.028, t + 0.9); g.gain.linearRampToValueAtTime(0.0001, t + 3.4);
+o.connect(g); g.connect(this.master); o.start(t); o.stop(t + 3.6);
+});
+this.nextChord = t + 3.2;
+}
+if (t >= this.nextBell) {
+const penta = [523, 587, 659, 784, 880];
+this.tone(penta[Math.floor(Math.random() * 5)], penta[0], 1.4, 'sine', 0.02);
+this.nextBell = t + rand(2.5, 5);
+}
+}
+};
+function updateSoundUI() {
+const on = SFX.enabled;
+D.btnSound.textContent = on ? '🔊' : '🔇';
+D.btnSoundP.textContent = on ? '🔊 Sonido: activado' : '🔇 Sonido: silenciado';
 }
 
-function update() {
-if (gameState !== 'PLAYING') return;
+/* ═══════════ [5] SPRITES · cargador + máquina de animación ═══════════ */
+const spriteCache = {};
+function loadSprite(src) {
+if (spriteCache[src]) return spriteCache[src];
+const e = { img: new Image(), ready: false, failed: false };
+e.img.onload = () => { e.ready = true; };
+e.img.onerror = () => { e.failed = true; };
+e.img.src = src; spriteCache[src] = e; return e;
+}
+let spritesLoaded = false, spriteToastShown = false;
+function preloadSprites() {
+for (const who of ['devas', 'freya']) for (const k in ANIM_CONFIG[who]) {
+const c = ANIM_CONFIG[who][k]; loadSprite(c.src);
+if (c.gif) { const g = new Image(); g.src = c.gif; }
+}
+setTimeout(spriteStatusUpdate, 3500);
+}
+function spriteStatusUpdate() {
+let ok = 0, total = 0;
+for (const src in spriteCache) { total++; if (spriteCache[src].ready) ok++; }
+spritesLoaded = true;
+if (ok === total && total > 0) { D.spriteStatus.textContent = 'Sprites: ' + ok + '/' + total + ' ✔'; D.spriteStatus.className = 'chip ok'; }
+else { D.spriteStatus.textContent = 'Sprites: ' + ok + '/' + total + ' · respaldo activo'; D.spriteStatus.className = 'chip warn'; }
+}
+class AnimState {
+constructor() { this.key = 'caminar'; this.frame = 0; this.acc = 0; }
+set(key) { if (key !== this.key) { this.key = key; this.frame = 0; this.acc = 0; } }
+update(dt, idle) {
+if (idle) { this.frame = 0; this.acc = 0; return; }
+const speed = ANIM_CONFIG.fps * (this.key === 'desanclar' ? 2.2 : 1);
+this.acc += dt; const spf = 1 / speed;
+while (this.acc >= spf) { this.acc -= spf; this.frame = (this.frame + 1) % ANIM_CONFIG.totalFrames; }
+}
+}
 
-// Movimiento Devas
-player1.vy += 0.4; player1.vx *= 0.85;
-if (touchInput.left) player1.vx = -3.5;
-if (touchInput.right) player1.vx = 3.5;
-if (touchInput.jump && player1.grounded) { player1.vy = -9; player1.grounded = false; }
-player1.x += player1.vx; player1.y += player1.vy;
+/* ═══════════ [6] MUNDO / FÍSICA ═══════════ */
+class Player {
+constructor(id) {
+this.id = id; this.x = 0; this.y = 0; this.vx = 0; this.vy = 0;
+this.tx = 0; this.ty = 0; this.facing = 1; this.hh = PHYS.hStand;
+this.onGround = false; this.anchored = false; this.crouch = false;
+this.hanging = false; this.rescuing = false; this.beingRescued = false; this.prevBeingRescued = false;
+this.animKey = 'caminar'; this.idleAnim = true; this.anim = new AnimState();
+this.inputs = { left: false, right: false, jump: false, down: false, anchor: false, contract: false, run: false };
+this.prevJump = false; this.prevAnchor = false;
+this.jumpBuf = 0; this.coyote = 0; this.climbCd = 0; this.moveT = 0; this.unanchorT = 0;
+this.squash = 0; this.blinkT = rand(2, 5); this.blink = 0; this.groundPlat = null;
+}
+get w() { return PHYS.w; }
+get h() { return this.hh; }
+}
+function buildWorld(idx) {
+const def = GAME_DATA.worlds[idx];
+world = {
+def, time: 0, ropeLen: MAX_ROPE, ropeTarget: MAX_ROPE, taut: false, contracting: false,
+hugFired: false, lastTickStep: -1, dialogsDone: new Set(),
+platforms: def.platforms.map(p => ({ ...p, bx: p.x, by: p.y, dx: 0, dy: 0, solid: p.type === 'solid' })),
+players: { devas: new Player('devas'), freya: new Player('freya') }
+};
+placeAt(world.players.devas, def.spawn.devas); placeAt(world.players.freya, def.spawn.freya);
+}
+function placeAt(p, pt) {
+p.x = pt.x; p.y = pt.y; p.tx = pt.x; p.ty = pt.y; p.vx = 0; p.vy = 0;
+p.anchored = false; p.crouch = false; p.hh = PHYS.hStand; p.hanging = false;
+p.rescuing = false; p.beingRescued = false; p.groundPlat = null; p.moveT = 0; p.unanchorT = 0;
+p.jumpBuf = 0; p.prevJump = false; p.prevAnchor = false;
+for (const k in p.inputs) p.inputs[k] = false;
+}
+function updateMovers() {
+for (const p of world.platforms) {
+if (!p.move) { p.dx = 0; p.dy = 0; continue; }
+const off = Math.sin(world.time * p.move.speed + (p.move.phase || 0)) * p.move.range;
+if (p.move.axis === 'x') {
+const nx = p.bx + off;
+p.dx = clamp(nx - p.x, -8, 8);
+p.dy = 0;
+p.x = nx;
+} else {
+const ny = p.by + off;
+p.dy = clamp(ny - p.y, -8, 8);
+p.dx = 0;
+p.y = ny;
+}
+}
+}
+const overlapX = (p, pl, inset = 4) => p.x + p.w - inset > pl.x && p.x + inset < pl.x + pl.w;
+const fullOverlap = (p, pl) => p.x + p.w > pl.x && p.x < pl.x + pl.w && p.y + p.h > pl.y && p.y < pl.y + pl.h;
+const other = p => world.players[p.id === 'devas' ? 'freya' : 'devas'];
+const ropePoint = p => ({ x: p.x + p.w / 2, y: p.y + p.h * 0.42 });
+const invMass = p => p.anchored ? 0 : p.onGround ? (p.crouch ? 0.25 : 0.55) : 1;
 
-//
+function stepPlayer(p, dt) {
+const I = p.inputs;
+const pressJump = I.jump && !p.prevJump, releaseJump = !I.jump && p.prevJump;
+const pressAnchor = I.anchor && !p.prevAnchor;
+p.prevJump = I.jump; p.prevAnchor = I.anchor;
+p.jumpBuf = Math.max(0, p.jumpBuf - dt); p.coyote = Math.max(0, p.coyote - dt);
+p.climbCd = Math.max(0, p.climbCd - dt); p.unanchorT = Math.max(0, p.unanchorT - dt);
+p.squash = approach(p.squash, 0, dt * 2.2);
+p.blinkT -= dt; if (p.blinkT <= 0) { p.blink = 0.12; p.blinkT = rand(2.2, 5); }
+p.blink = Math.max(0, p.blink - dt);
+if (pressJump) p.jumpBuf = PHYS.jumpBuf;
+
+if (pressAnchor && p.onGround) {
+p.anchored = !p.anchored;
+if (p.anchored) fx('anchor', p.x + p.w / 2, p.y + p.h);
+else { p.unanchorT = 0.5; fx('unanchor', p.x + p.w / 2, p.y + p.h); }
+}
+const wantCrouch = I.down && p.onGround && !p.anchored;
+if (wantCrouch && p.hh !== PHYS.hCrouch) { p.y += PHYS.hStand - PHYS.hCrouch; p.hh = PHYS.hCrouch; }
+else if (!wantCrouch && p.hh !== PHYS.hStand) {
+const ny = p.y - (PHYS.hStand - PHYS.hCrouch);
+let blocked = false;
+for (const pl of world.platforms) if (pl.solid && inRect(p.x + 2, ny, p.w - 4, PHYS.hStand, pl)) { blocked = true; break; }
+if (!blocked) { p.y = ny; p.hh = PHYS.hStand; }
+}
+p.crouch = p.hh === PHYS.hCrouch;
+
+// Transporte por plataforma móvil (ANTES de anclar, para que el anclaje siga a la plataforma)
+if (p.groundPlat && p.groundPlat.move) { p.x += p.groundPlat.dx; p.y += p.groundPlat.dy; }
+
+if (p.anchored) {
+let hasSupport = false;
+for (const pl of world.platforms) {
+if (overlapX(p, pl) && Math.abs((p.y + p.h) - pl.y) <= 6) {
+hasSupport = true; p.groundPlat = pl; break;
+}
+}
+if (hasSupport) {
+p.vx = 0; p.vy = 0; p.onGround = true; p.moveT = 0;
+return;
+} else {
+p.anchored = false; p.onGround = false; p.groundPlat = null;
+fx('unanchor', p.x + p.w / 2, p.y + p.h);
+}
+}
+
+const dir = (I.right ? 1 : 0) - (I.left ? 1 : 0);
+if (dir) { p.facing = dir; p.moveT += dt; } else p.moveT = 0;
+const maxSp = (I.run || p.moveT > 0.55) ? PHYS.run : PHYS.walk;
+const target = dir * maxSp * (p.crouch ? 0.35 : 1);
+p.vx = approach(p.vx, target, (p.onGround ? PHYS.accelG : PHYS.accelA) * dt);
+if (p.hanging) p.vx += dir * PHYS.swing * dt;
+
+if (p.jumpBuf > 0 && (p.onGround || p.coyote > 0) && !p.crouch) {
+p.vy = -PHYS.jump; p.onGround = false; p.coyote = 0; p.jumpBuf = 0; p.squash = -0.14;
+fx('jump', p.x + p.w / 2, p.y + p.h);
+} else if (p.jumpBuf > 0 && p.hanging && p.climbCd <= 0) {
+p.vy = Math.min(p.vy, -PHYS.climb); p.climbCd = PHYS.climbCd; p.jumpBuf = 0;
+p.vx += Math.sign(other(p).x - p.x) * 60;
+fx('climb', p.x + p.w / 2, p.y + p.h * 0.4);
+}
+if (releaseJump && p.vy < -140) p.vy *= 0.5;
+p.vy = Math.min(p.vy + PHYS.g * dt, PHYS.maxFall);
+
+p.x += p.vx * dt;
+for (const pl of world.platforms) {
+if (!pl.solid || !fullOverlap(p, pl)) continue;
+if (p.vx > 0) p.x = pl.x - p.w; else if (p.vx < 0) p.x = pl.x + pl.w;
+else p.x = (p.x + p.w / 2 < pl.x + pl.w / 2) ? pl.x - p.w : pl.x + pl.w;
+p.vx = 0;
+}
+const prevB = p.y + p.h, prevVy = p.vy;
+p.y += p.vy * dt;
+p.onGround = false; p.groundPlat = null;
+for (const pl of world.platforms) {
+if (!overlapX(p, pl)) continue;
+if (p.vy >= 0 && prevB <= pl.y + 8 && p.y + p.h >= pl.y) {
+p.y = pl.y - p.h; p.vy = 0; p.onGround = true; p.groundPlat = pl;
+if (prevVy > 430) { p.squash = clamp(prevVy / 2600, 0.12, 0.3); fx('land', p.x + p.w / 2, p.y + p.h, prevVy); }
+} else if (pl.solid && p.vy < 0 && p.y <= pl.y + pl.h && prevB - p.h >= pl.y + pl.h - 8) {
+p.y = pl.y + pl.h; p.vy = 0;
+}
+}
+if (p.onGround) p.coyote = PHYS.coyote;
+p.x = clamp(p.x, 0, world.def.w - p.w);
+}
+function resolveOverlaps(p) {
+for (const pl of world.platforms) {
+if (!overlapX(p, pl) || p.y + p.h <= pl.y || p.y >= pl.y + pl.h) continue;
+if (pl.solid) {
+const up = p.y + p.h - pl.y, dn = pl.y + pl.h - p.y, lf = p.x + p.w - pl.x, rt = pl.x + pl.w - p.x;
+const m = Math.min(up, dn, lf, rt);
+if (m === up) { p.y = pl.y - p.h; if (p.vy > 0) p.vy = 0; p.onGround = true; p.groundPlat = pl; }
+else if (m === dn) { p.y = pl.y + pl.h; if (p.vy < 0) p.vy = 0; }
+else if (m === lf) { p.x = pl.x - p.w; if (p.vx > 0) p.vx = 0; }
+else { p.x = pl.x + pl.w; if (p.vx < 0) p.vx = 0; }
+} else if (p.vy >= 0 && p.y + p.h - pl.y < 22) {
+p.y = pl.y - p.h; p.vy = 0; p.onGround = true; p.groundPlat = pl;
+}
+}
+p.x = clamp(p.x, 0, world.def.w - p.w);
+}
+function updateRope(dt) {
+const a = world.players.devas, b = world.players.freya;
+const both = a.inputs.contract && b.inputs.contract;
+world.contracting = a.inputs.contract || b.inputs.contract;
+if (world.contracting) world.ropeTarget = Math.max(MIN_ROPE, world.ropeTarget - PHYS.contractSpeed * (both ? 1.6 : 1) * dt);
+else world.ropeTarget = Math.min(MAX_ROPE, world.ropeTarget + PHYS.expandSpeed * dt);
+world.ropeLen += (world.ropeTarget - world.ropeLen) * PHYS.ropeSmooth;
+if (Math.abs(world.ropeLen - world.ropeTarget) < 0.4) world.ropeLen = world.ropeTarget;
+if (world.contracting) {
+const stepN = Math.floor(world.ropeLen / 14);
+if (stepN !== world.lastTickStep) {
+world.lastTickStep = stepN;
+const rp = ropePoint(a.inputs.contract ? a : b);
+fx('tick', rp.x, rp.y);
+}
+} else world.lastTickStep = -1;
+}
+function solveRope() {
+const a = world.players.devas, b = world.players.freya;
+const L = Math.max(world.ropeLen, 6);
+const beforeAy = a.y, beforeBy = b.y;
+for (let it = 0; it < 3; it++) {
+const pa = ropePoint(a), pb = ropePoint(b);
+const d = dist2(pa.x, pa.y, pb.x, pb.y);
+if (d <= L || d < 0.001) continue;
+const nx = (pb.x - pa.x) / d, ny = (pb.y - pa.y) / d, diff = d - L;
+const imA = invMass(a), imB = invMass(b), sum = imA + imB;
+if (sum <= 0) continue;
+a.x += nx * diff * (imA / sum); a.y += ny * diff * (imA / sum);
+b.x -= nx * diff * (imB / sum); b.y -= ny * diff * (imB / sum);
+resolveOverlaps(a); resolveOverlaps(b);
+}
+const paNow = ropePoint(a), pbNow = ropePoint(b);
+const dNow = dist2(paNow.x, paNow.y, pbNow.x, pbNow.y);
+world.taut = dNow >= L - 1.5;
+
+if (world.taut && dNow > 0.001) {
+const nx = (pbNow.x - paNow.x) / dNow, ny = (pbNow.y - paNow.y) / dNow;
+const rvx = b.vx - a.vx, rvy = b.vy - a.vy;
+const relVel = rvx * nx + rvy * ny;
+if (relVel > 0) {
+const imA = invMass(a), imB = invMass(b), sum = imA + imB;
+if (sum > 0) {
+a.vx += nx * relVel * (imA / sum); a.vy += ny * relVel * (imA / sum);
+b.vx -= nx * relVel * (imB / sum); b.vy -= ny * relVel * (imB / sum);
+}
+}
+}
+
+for (const p of [a, b]) {
+const o = other(p);
+p.hanging = !p.onGround && world.taut && (o.anchored || o.onGround) && world.ropeLen > 14;
+p.rescuing = world.contracting && world.ropeLen > 3 && p.inputs.contract && (p.onGround || p.anchored);
+p.beingRescued = world.contracting && world.ropeLen > 3 && o.inputs.contract && (o.onGround || o.anchored) && !p.onGround;
+if (p.hanging || p.rescuing || p.beingRescued) p.facing = Math.sign(o.x - p.x) || p.facing;
+if (p.onGround && p.prevBeingRescued) { ctl.rescues++; fx('rescue', p.x + p.w / 2, p.y); toast('¡Rescate! 💛 (+1)'); }
+p.prevBeingRescued = p.beingRescued;
+}
+if (world.ropeLen < 8 && dNow < 16 && !world.hugFired) { world.hugFired = true; fx('heart', (a.x + b.x) / 2 + 18, Math.min(a.y, b.y)); }
+if (world.ropeLen > 30) world.hugFired = false;
+
+if (a.y < beforeAy - 1) a.onGround = false;
+if (b.y < beforeBy - 1) b.onGround = false;
+}
+function resolveAnimKey(p) {
+if (p.rescuing) return ['rescatar', false];
+if (p.beingRescued) return ['rescatado', false];
+if (p.hanging) return ['colgado', false];
+if (p.anchored) return ['anclar', false];
+if (p.unanchorT > 0) return ['desanclar', false];
+if (p.crouch) return ['agacharse', false];
+if (!p.onGround) return [p.vy > 60 ? 'caer' : 'saltar', false];
+if (Math.abs(p.vx) > 200) return ['correr', false];
+if (Math.abs(p.vx) > 12) return ['caminar', false];
+return ['caminar', true];
+}
+function stepWorld(dt) {
+world.time += dt;
+updateMovers();
+updateRope(dt);
+stepPlayer(world.players.devas, dt);
+stepPlayer(world.players.freya, dt);
+solveRope();
+for (const id in world.players) { const p = world.players[id]; const r = resolveAnimKey(p); p.animKey = r[0]; p.idleAnim = r[1]; }
+checkTriggers();
+for (const k of ['jump', 'anchor']) {
+if (netHold[k]) {
+netHold[k] = false;
+if (netDefer[k]) { world.players.freya.inputs[k] = false; netDefer[k] = false; }
+}
+}
+}
+function checkTriggers() {
+if (!ctl.started || ctl.won) return;
+const a = world.players.devas, b = world.players.freya;
+for (const p of [a, b]) if (p.y > world.def.deathY) { handleFall(p); return; }
+world.def.shards.forEach((s, i) => {
+if (ctl.shards & (1 << i)) return;
+const box = { x: s.x - 13, y: s.y - 13, w: 26, h: 26 };
+if (inRect(a.x, a.y, a.w, a.h, box) || inRect(b.x, b.y, b.w, b.h, box)) {
+ctl.shards |= (1 << i); fx('shard', s.x, s.y);
+const n = countShards();
+toast('✦ Cristal de aurora ' + n + '/' + world.def.shards.length, 1.5);
+if (n === world.def.shards.length) toast('✨ ¡Todos los cristales! La aurora brilla para ustedes.', 3);
+}
+});
+if (!ctl.dialog) {
+for (const d of world.def.dialogs) {
+if (world.dialogsDone.has(d.id)) continue;
+if (inRect(a.x, a.y, a.w, a.h, d.zone) || inRect(b.x, b.y, b.w, b.h, d.zone)) { openDialog(d.id, 0, true); break; }
+}
+}
+world.def.checkpoints.forEach((c, i) => {
+if (i <= ctl.checkpoint) return;
+if (a.onGround && b.onGround && inRect(a.x, a.y, a.w, a.h, c.zone) && inRect(b.x, b.y, b.w, b.h, c.zone)) {
+ctl.checkpoint = i;
+fx('checkpoint', c.flag ? c.flag.x : a.x, c.flag ? c.flag.y - 40 : a.y);
+toast('🏕️ Campamento asegurado ✔'); saveSession();
+}
+});
+const g = world.def.goal;
+if (a.onGround && b.onGround && inRect(a.x, a.y, a.w, a.h, g) && inRect(b.x, b.y, b.w, b.h, g)) triggerWin();
+}
+const countShards = () => { let n = 0; for (let i = 0; i < world.def.shards.length; i++) if (ctl.shards & (1 << i)) n++; return n; };
+function handleFall(fallen) {
+ctl.falls++; ctl.fade = 0.85; fx('fall', fallen.x + 18, world.def.deathY - 40);
+const cp = world.def.checkpoints[ctl.checkpoint], partner = other(fallen);
+if (ctl.diff === 'stroll' && partner.y < world.def.deathY - 60 && partner.onGround) {
+placeAt(fallen, { x: clamp(partner.x - partner.facing * 44, 0, world.def.w - 40), y: partner.y - 4 });
+toast('🌸 ' + (fallen.id === 'devas' ? 'Devas' : 'Freya') + ' reaparece junto a su pareja');
+} else {
+placeAt(world.players.devas, cp.a); placeAt(world.players.freya, cp.b);
+toast('🪂 ¡Caída! Vuelven al último campamento');
+}
+world.ropeTarget = MAX_ROPE; world.ropeLen = MAX_ROPE;
+cam.snap = true; saveSession();
+}
+function triggerWin() {
+if (ctl.won) return;
+ctl.won = true; ctl.paused.won = true; ctl.winDelay = 1.1;
+fx('win', world.def.goal.fire.x, world.def.goal.fire.y - 30);
+saveSession();
+}
+function fullReset() {
+buildWorld(0);
+ctl.playT = 0; ctl.falls = 0; ctl.rescues = 0; ctl.checkpoint = 0; ctl.shards = 0;
+ctl.won = false; ctl.winDelay = 0; ctl.dialog = null; ctl.paused = {}; ctl.awayT = 0;
+parts.length = 0; cam.snap = true;
+D.winOv.classList.add('hidden'); D.pauseOv.classList.add('hidden'); D.dialog.classList.add('hidden');
+document.body.classList.remove('won', 'paused', 'dlg-open');
+hideBanner(); saveSession();
+}
+
+/* ═══════════ [7] PARTÍCULAS / FX ═══════════ */
+const fxThrottle = {};
+function fx(kind, x, y, extra) {
+const now = performance.now();
+const important = ['rescue', 'checkpoint', 'win', 'fall', 'anchor', 'shard'].includes(kind);
+if (!important && fxThrottle[kind] && now - fxThrottle[kind] < 90) return;
+fxThrottle[kind] = now;
+fxLocal(kind, x, y, extra);
+if (isAuthority() && Net.open) Net.send({ t: 'e', k: kind, x: Math.round(x), y: Math.round(y), v: extra ? Math.round(extra) : 0 });
+}
+function fxLocal(kind, x, y, extra) {
+const push = o => { if (parts.length > 480) parts.shift(); parts.push(o); };
+const burst = (n, f) => { for (let i = 0; i < n; i++) push(f(i)); };
+switch (kind) {
+case 'jump': SFX.play('jump'); burst(4, () => ({ k: 'dust', x: x + rand(-8, 8), y, vx: rand(-40, 40), vy: rand(-30, 5), life: rand(.3, .5), max: .5, s: rand(2, 4) })); break;
+case 'land': SFX.play('land'); if (extra > 760) cam.shake = Math.min(cam.shake + 5, 12);
+burst(7, () => ({ k: 'dust', x: x + rand(-12, 12), y, vx: rand(-70, 70), vy: rand(-50, -5), life: rand(.3, .6), max: .6, s: rand(2, 5) })); break;
+case 'anchor': SFX.play('anchor'); cam.shake = Math.min(cam.shake + 3, 10);
+push({ k: 'ring', x, y: y - 2, life: .4, max: .4, s: 6 });
+burst(6, () => ({ k: 'spark', x, y: y - 4, vx: rand(-120, 120), vy: rand(-140, -20), life: rand(.2, .4), max: .4, s: 2, c: '#ffd36e' })); break;
+case 'unanchor': SFX.play('unanchor'); burst(4, () => ({ k: 'dust', x, y, vx: rand(-50, 50), vy: rand(-40, 0), life: .35, max: .35, s: 3 })); break;
+case 'tick': SFX.play('tick'); push({ k: 'spark', x: x + rand(-4, 4), y: y + rand(-4, 4), vx: rand(-30, 30), vy: rand(-60, -10), life: .2, max: .2, s: 1.5, c: '#ffd36e' }); break;
+case 'climb': SFX.play('climb'); burst(3, () => ({ k: 'spark', x, y, vx: rand(-40, 40), vy: rand(-70, -20), life: .25, max: .25, s: 1.5, c: '#9fb0d8' })); break;
+case 'shard': SFX.play('shard'); burst(12, () => ({ k: 'pop', x, y, vx: rand(-110, 110), vy: rand(-130, 30), life: rand(.4, .8), max: .8, s: rand(2, 4), c: ['#3ef2b0', '#b46bff', '#6fc3ff'][Math.floor(Math.random() * 3)] }));
+push({ k: 'ring', x, y, life: .45, max: .45, s: 5 }); break;
+case 'rescue': SFX.play('rescue'); burst(6, () => ({ k: 'heart', x: x + rand(-14, 14), y: y + rand(-10, 10), vx: rand(-20, 20), vy: rand(-70, -40), life: rand(.7, 1.1), max: 1.1, s: rand(4, 7) })); break;
+case 'heart': SFX.play('heart'); burst(3, () => ({ k: 'heart', x: x + rand(-8, 8), y, vx: rand(-15, 15), vy: rand(-55, -30), life: rand(.6, .9), max: .9, s: rand(3, 5) })); break;
+case 'checkpoint': SFX.play('checkpoint'); burst(14, () => ({ k: 'pop', x, y, vx: rand(-140, 140), vy: rand(-180, -40), life: rand(.4, .8), max: .8, s: rand(2, 4), c: Math.random() < .5 ? '#3ef2b0' : '#ffd36e' })); break;
+case 'fall': SFX.play('fall'); cam.shake = Math.min(cam.shake + 8, 14); break;
+case 'win': SFX.play('win'); cam.shake = Math.min(cam.shake + 4, 10); ctl.confettiT = 1.4; break;
+}
+}
+function tickParticles(dt) {
+for (let i = parts.length - 1; i >= 0; i--) {
+const p = parts[i]; p.life -= dt;
+if (p.life <= 0) { parts.splice(i, 1); continue; }
+if (p.k === 'dust' || p.k === 'pop' || p.k === 'spark') p.vy += 260 * dt;
+if (p.k === 'heart' || p.k === 'ember') p.vy -= 20 * dt;
+if (p.k === 'conf') p.rot += p.vr * dt;
+p.x += p.vx * dt; p.y += p.vy * dt;
+}
+if (ctl.confettiT > 0) {
+ctl.confettiT -= dt;
+const g = world.def.goal.fire;
+for (let i = 0; i < 5; i++) {
+if (parts.length > 480) parts.shift();
+parts.push({ k: 'conf', x: g.x + rand(-90, 90), y: g.y - rand(60, 160), vx: rand(-60, 60), vy: rand(-40, 60), life: rand(1, 2), max: 2, s: rand(3, 5), rot: rand(0, 6.3), vr: rand(-6, 6), c: ['#ffd36e', '#5fb0ff', '#ff7ad0', '#3ef2b0', '#b46bff'][i % 5] });
+}
+}
+ctl.emberT -= dt;
+if (ctl.emberT <= 0) {
+ctl.emberT = 0.12; const g = world.def.goal.fire;
+fxLocalSilent('ember', g.x, g.y - 14);
+}
+}
+function fxLocalSilent(kind, x, y) {
+if (kind === 'ember' && parts.length < 460) {
+parts.push({ k: 'ember', x: x + rand(-6, 6), y, vx: rand(-12, 12), vy: rand(-55, -25), life: rand(.5, 1), max: 1, s: rand(1.5, 3) });
+}
+}
+
+/* ═══════════ [8] RENDER ═══════════ */
+const cv = D.game, ctx = cv.getContext('2d');
+let S = 1, viewW = 960;
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let skyGrad = null, mtnFar = null, mtnMid = null, stars = [], flakes = [], clouds = [];
+
+function fitCanvas() {
+const w = window.innerWidth, h = window.innerHeight;
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+cv.style.width = w + 'px'; cv.style.height = h + 'px';
+S = cv.height / VIEW_H; viewW = cv.width / S;
+if (!flakes.length) for (let i = 0; i < 85; i++) flakes.push({ x: Math.random() * 1600, y: Math.random() * VIEW_H, s: rand(0.8, 2.4), ph: rand(0, 6.3) });
+}
+function prerenderBG() {
+skyGrad = ctx.createLinearGradient(0, 0, 0, VIEW_H);
+skyGrad.addColorStop(0, '#060913'); skyGrad.addColorStop(0.45, '#121a3e');
+skyGrad.addColorStop(0.75, '#25336b'); skyGrad.addColorStop(0.92, '#3d4f96'); skyGrad.addColorStop(1, '#61679f');
+const rng = mulberry32(20261123);
+stars = []; for (let i = 0; i < 130; i++) stars.push({ x: rng() * 1700, y: rng() * 300, s: rng() * 1.6 + 0.4, ph: rng() * 6.3 });
+clouds = []; for (let i = 0; i < 7; i++) clouds.push({ x: rng() * 2200, y: 100 + rng() * 170, s: 40 + rng() * 70, sp: 4 + rng() * 8 });
+mtnFar = makeRidge(2300, 330, '#1a2450', '#0e1430', 0.55, 90, 190, mulberry32(7));
+mtnMid = makeRidge(3100, 330, '#232f63', '#131b3e', 0.85, 60, 240, mulberry32(13));
+}
+function makeRidge(w, h, c1, c2, snowA, step, amp, rng) {
+const c = document.createElement('canvas'); c.width = w; c.height = h;
+const g = c.getContext('2d');
+const pts = []; let y = h * 0.55;
+for (let x = 0; x <= w + step; x += step) { y = clamp(y + (rng() - 0.5) * amp, h * 0.18, h * 0.8); pts.push([x, y]); }
+const grad = g.createLinearGradient(0, 0, 0, h); grad.addColorStop(0, c1); grad.addColorStop(1, c2);
+g.fillStyle = grad; g.beginPath(); g.moveTo(-10, h + 10);
+pts.forEach(p => g.lineTo(p[0], p[1])); g.lineTo(w + 10, h + 10); g.closePath(); g.fill();
+g.strokeStyle = 'rgba(238,244,255,' + snowA + ')'; g.lineWidth = 3; g.lineJoin = 'round';
+g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke();
+return c;
+}
+function updateCamera(dt) {
+let tx, ty;
+if (ctl.mode === 'menu') {
+tx = 480 + (Math.sin(world.time * 0.10) * 0.5 + 0.5) * 2300;
+ty = clamp(930 - (tx / 3200) * 760, VIEW_H / 2, world.def.h - VIEW_H / 2);
+} else {
+const a = world.players.devas, b = world.players.freya;
+tx = (a.x + b.x) / 2 + 18; ty = (a.y + b.y) / 2 - 30 + clamp((a.vy + b.vy) * 0.04, -30, 60);
+}
+tx = clamp(tx, viewW / 2, world.def.w - viewW / 2);
+ty = clamp(ty, VIEW_H / 2, world.def.h - VIEW_H / 2);
+if (cam.snap) { cam.x = tx; cam.y = ty; cam.snap = false; }
+else { const k = 1 - Math.exp(-6 * dt); cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; }
+cam.shake *= Math.pow(0.02, dt); if (cam.shake < 0.05) cam.shake = 0;
+}
+function render(dt) {
+ctx.setTransform(S, 0, 0, S, 0, 0);
+const t = world.time, bgOff = -(cam.y - 650) * 0.08;
+ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, viewW, VIEW_H);
+ctx.fillStyle = '#eaf1ff';
+for (const st of stars) {
+const sx = ((st.x - cam.x * 0.10) % 1700 + 1700) % 1700 - 50;
+if (sx < -10 || sx > viewW + 10) continue;
+ctx.globalAlpha = 0.35 + 0.4 * (0.5 + 0.5 * Math.sin(t * 1.8 + st.ph));
+ctx.fillRect(sx, st.y + bgOff * 0.4, st.s, st.s);
+}
+ctx.globalAlpha = 1;
+ctx.save(); ctx.globalCompositeOperation = 'lighter';
+const aur = [['#3ef2b0', 78, 0], ['#b46bff', 122, 2.1], ['#ff5fa8', 160, 4.2]];
+for (const a of aur) {
+ctx.strokeStyle = a[0]; ctx.lineCap = 'round';
+for (const pass of [[26, 0.07], [10, 0.10]]) {
+ctx.lineWidth = pass[0]; ctx.globalAlpha = pass[1];
+ctx.beginPath();
+for (let x = -20; x <= viewW + 20; x += 40) {
+const wx = x + cam.x * 0.12;
+const y = a[1] + bgOff * 0.5 + Math.sin(wx * 0.006 + t * 0.35 + a[2]) * 26 + Math.sin(wx * 0.017 + t * 0.2 + a[2]) * 9;
+x === -20 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+}
+ctx.stroke();
+}
+}
+ctx.restore(); ctx.globalAlpha = 1;
+ctx.drawImage(mtnFar, -((cam.x * 0.18) % 400) - 100, 215 + bgOff * 0.5);
+ctx.fillStyle = 'rgba(220,230,255,0.10)';
+for (const cl of clouds) {
+const cx = ((cl.x + t * cl.sp - cam.x * 0.5) % 2200 + 2200) % 2200 - 150;
+if (cx < -160 || cx > viewW + 160) continue;
+const cy = cl.y + bgOff * 0.7;
+ctx.beginPath(); ctx.ellipse(cx, cy, cl.s, cl.s * 0.32, 0, 0, 6.3);
+ctx.ellipse(cx + cl.s * 0.6, cy + 6, cl.s * 0.7, cl.s * 0.24, 0, 0, 6.3); ctx.fill();
+}
+ctx.drawImage(mtnMid, -((cam.x * 0.45) % 500) - 120, 255 + bgOff * 0.8);
+
+const shx = cam.shake ? rand(-cam.shake, cam.shake) * (reduceMotion ? 0.3 : 1) : 0;
+const shy = cam.shake ? rand(-cam.shake, cam.shake) * (reduceMotion ? 0.3 : 1) : 0;
+ctx.save();
+ctx.translate(viewW / 2 - cam.x + shx, VIEW_H / 2 - cam.y + shy);
+drawPlatforms(t); drawDecor(t); drawShards(t); drawRope(t);
+const order = [world.players.devas, world.players.freya].sort((a, b) => a.y - b.y);
+for (const p of order) drawPlayer(p, t);
+drawParticles();
+ctx.restore();
+
+ctx.fillStyle = 'rgba(238,244,255,0.55)';
+for (const f of flakes) {
+f.y += (18 + f.s * 10) * dt; f.x += (Math.sin(t * 0.8 + f.ph) * 12 + 10) * dt;
+if (f.y > VIEW_H + 4) { f.y = -4; f.x = Math.random() * viewW; }
+if (f.x > viewW + 4) f.x = -4;
+ctx.globalAlpha = 0.25 + f.s * 0.16;
+ctx.fillRect(f.x, f.y, f.s, f.s);
+}
+ctx.globalAlpha = 1;
+drawGoalArrow();
+if (ctl.dialog && !ctl.dialog.gifOk) drawPortrait();
+}
+function drawPlatforms(t) {
+for (const p of world.platforms) {
+if (p.x + p.w < cam.x - viewW / 2 - 40 || p.x > cam.x + viewW / 2 + 40) continue;
+if (p.move) {
+ctx.save(); ctx.strokeStyle = 'rgba(159,176,216,0.28)'; ctx.lineWidth = 2; ctx.setLineDash([4, 7]);
+ctx.beginPath();
+if (p.move.axis === 'y') { ctx.moveTo(p.bx + p.w / 2, p.by - p.move.range + 9); ctx.lineTo(p.bx + p.w / 2, p.by + p.move.range + 9); }
+else { ctx.moveTo(p.bx - p.move.range + 6, p.by + 9); ctx.lineTo(p.bx + p.move.range + p.w - 6, p.by + 9); }
+ctx.stroke(); ctx.setLineDash([]);
+ctx.fillStyle = 'rgba(255,211,110,0.7)'; ctx.font = '700 10px Nunito'; ctx.textAlign = 'center';
+ctx.fillText(p.move.axis === 'y' ? '↕' : '↔', p.x + p.w / 2, p.y + p.h + 14);
+ctx.restore();
+}
+ctx.fillStyle = 'rgba(3,5,12,0.30)'; rr(ctx, p.x + 4, p.y + 7, p.w, Math.min(p.h, 20), 6); ctx.fill();
+const g = ctx.createLinearGradient(0, p.y, 0, p.y + Math.min(p.h, 240));
+if (p.solid) { g.addColorStop(0, '#5f7fc0'); g.addColorStop(0.12, '#41599c'); g.addColorStop(1, '#1c2750'); }
+else { g.addColorStop(0, '#8fb0e4'); g.addColorStop(1, '#4a66a8'); }
+ctx.fillStyle = g; rr(ctx, p.x, p.y, p.w, p.h, p.solid ? 8 : 7); ctx.fill();
+ctx.fillStyle = '#eef4ff'; rr(ctx, p.x - 2, p.y - 4, p.w + 4, 10, 5); ctx.fill();
+ctx.beginPath();
+for (let bx = p.x + 10; bx < p.x + p.w - 6; bx += 26) ctx.arc(bx, p.y - 3, 6, Math.PI, 0);
+ctx.fill();
+ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(p.x + 2, p.y - 4, p.w - 4, 2);
+if (!p.solid) {
+ctx.fillStyle = 'rgba(159,185,232,0.8)';
+for (let ix = p.x + 12; ix < p.x + p.w - 8; ix += 30) {
+ctx.beginPath(); ctx.moveTo(ix, p.y + p.h); ctx.lineTo(ix + 6, p.y + p.h); ctx.lineTo(ix + 3, p.y + p.h + 8); ctx.closePath(); ctx.fill();
+}
+}
+}
+}
+function drawShards(t) {
+world.def.shards.forEach((s, i) => {
+if (ctl.shards & (1 << i)) return;
+if (s.x < cam.x - viewW / 2 - 30 || s.x > cam.x + viewW / 2 + 30) return;
+const bob = Math.sin(t * 2 + i) * 4, y = s.y + bob;
+const glow = ctx.createRadialGradient(s.x, y, 1, s.x, y, 26);
+glow.addColorStop(0, 'rgba(62,242,176,0.35)'); glow.addColorStop(1, 'rgba(62,242,176,0)');
+ctx.fillStyle = glow; ctx.fillRect(s.x - 26, y - 26, 52, 52);
+ctx.save(); ctx.translate(s.x, y); ctx.rotate(t * 1.2 + i);
+const g = ctx.createLinearGradient(-8, -10, 8, 10);
+g.addColorStop(0, '#b46bff'); g.addColorStop(.5, '#3ef2b0'); g.addColorStop(1, '#6fc3ff');
+ctx.fillStyle = g;
+ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(7, 0); ctx.lineTo(0, 11); ctx.lineTo(-7, 0); ctx.closePath(); ctx.fill();
+ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 1.2; ctx.stroke();
+ctx.restore();
+});
+}
+function drawDecor(t) {
+const def = world.def;
+for (const s of def.signs) {
+ctx.fillStyle = '#6b4a2a'; ctx.fillRect(s.x - 2, s.y - 26, 4, 26);
+ctx.fillStyle = '#8a6136'; rr(ctx, s.x - 52, s.y - 44, 104, 22, 5); ctx.fill();
+ctx.strokeStyle = '#5a3d20'; ctx.lineWidth = 1.5; rr(ctx, s.x - 52, s.y - 44, 104, 22, 5); ctx.stroke();
+ctx.fillStyle = '#ffe9c4'; ctx.font = '700 8.5px Nunito'; ctx.textAlign = 'center';
+ctx.fillText(s.text, s.x, s.y - 30);
+}
+def.checkpoints.forEach((c, i) => {
+if (!c.flag) return;
+const active = i <= ctl.checkpoint;
+ctx.fillStyle = '#c8d4ee'; ctx.fillRect(c.flag.x - 1.5, c.flag.y - 52, 3, 52);
+const wav = Math.sin(t * 3 + i) * 3;
+ctx.fillStyle = active ? '#3ef2b0' : '#5a6a92';
+ctx.beginPath(); ctx.moveTo(c.flag.x + 1.5, c.flag.y - 52);
+ctx.quadraticCurveTo(c.flag.x + 18, c.flag.y - 48 + wav, c.flag.x + 32, c.flag.y - 44 + wav);
+ctx.lineTo(c.flag.x + 1.5, c.flag.y - 36); ctx.closePath(); ctx.fill();
+if (active) { ctx.fillStyle = 'rgba(62,242,176,0.25)'; ctx.beginPath(); ctx.arc(c.flag.x, c.flag.y - 46, 10 + Math.sin(t * 2) * 2, 0, 6.3); ctx.fill(); }
+});
+const f = def.goal.fire;
+const glow = ctx.createRadialGradient(f.x, f.y - 14, 4, f.x, f.y - 14, 90);
+glow.addColorStop(0, 'rgba(255,180,80,0.35)'); glow.addColorStop(1, 'rgba(255,180,80,0)');
+ctx.fillStyle = glow; ctx.fillRect(f.x - 90, f.y - 104, 180, 130);
+ctx.fillStyle = '#6b4a2a';
+ctx.save(); ctx.translate(f.x, f.y - 4);
+ctx.rotate(0.5); ctx.fillRect(-14, -3, 28, 6); ctx.rotate(-1); ctx.fillRect(-14, -3, 28, 6); ctx.restore();
+for (let i = 0; i < 3; i++) {
+const fh = 22 - i * 6, fw = 12 - i * 3, wob = Math.sin(t * 9 + i * 2) * 2.5;
+ctx.fillStyle = ['#ff8a3d', '#ffb84d', '#ffe9a0'][i];
+ctx.beginPath(); ctx.moveTo(f.x - fw, f.y - 6);
+ctx.quadraticCurveTo(f.x - fw + wob, f.y - 6 - fh * 0.6, f.x + wob * 0.6, f.y - 6 - fh);
+ctx.quadraticCurveTo(f.x + fw + wob, f.y - 6 - fh * 0.6, f.x + fw, f.y - 6); ctx.closePath(); ctx.fill();
+}
+ctx.fillStyle = '#c8d4ee'; ctx.fillRect(f.x + 40, f.y - 58, 3, 58);
+ctx.fillStyle = '#ff3d81';
+ctx.beginPath(); ctx.moveTo(f.x + 43, f.y - 58); ctx.lineTo(f.x + 74, f.y - 50 + Math.sin(t * 3) * 2); ctx.lineTo(f.x + 43, f.y - 40); ctx.closePath(); ctx.fill();
+ctx.fillStyle = '#fff'; ctx.font = '9px Nunito'; ctx.textAlign = 'center'; ctx.fillText('♥', f.x + 54, f.y - 46);
+}
+function drawRope(t) {
+const a = ropePoint(world.players.devas), b = ropePoint(world.players.freya);
+const d = dist2(a.x, a.y, b.x, b.y), L = Math.max(world.ropeLen, 2);
+const tension = clamp(d / Math.max(L, 1), 0, 1);
+const sag = clamp((L - d) * 0.5, 0, 42);
+const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 + sag;
+const col = world.contracting ? '#ffd36e' : tension > 0.97 ? '#ff5f6d' : '#e8b45a';
+ctx.save(); ctx.lineCap = 'round';
+ctx.strokeStyle = 'rgba(3,5,12,0.4)'; ctx.lineWidth = 4;
+ctx.beginPath(); ctx.moveTo(a.x, a.y + 2); ctx.quadraticCurveTo(mx, my + 2, b.x, b.y + 2); ctx.stroke();
+ctx.strokeStyle = col; ctx.lineWidth = 3;
+if (world.contracting) { ctx.setLineDash([7, 5]); ctx.lineDashOffset = -t * 60; }
+ctx.beginPath(); ctx.moveTo(a.x, a.y);
+if (sag > 2) ctx.quadraticCurveTo(mx, my, b.x, b.y);
+else { const vib = Math.sin(t * 40) * 1.4 * tension; ctx.quadraticCurveTo(mx + vib, my + vib, b.x, b.y); }
+ctx.stroke(); ctx.setLineDash([]);
+ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1;
+ctx.beginPath(); ctx.moveTo(a.x, a.y - 1); ctx.quadraticCurveTo(mx, my - 1, b.x, b.y - 1); ctx.stroke();
+for (const pt of [a, b]) { ctx.strokeStyle = '#ffd36e'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(pt.x, pt.y, 3.5, 0, 6.3); ctx.stroke(); }
+if (world.contracting || tension > 0.97) {
+ctx.fillStyle = 'rgba(6,9,20,0.75)'; rr(ctx, mx - 22, my - 24, 44, 15, 7); ctx.fill();
+ctx.fillStyle = col; ctx.font = '800 10px Nunito'; ctx.textAlign = 'center';
+ctx.fillText(Math.round(world.ropeLen) + 'px', mx, my - 13);
+}
+ctx.restore();
+}
+function drawPlayer(p, t) {
+const cfg = ANIM_CONFIG[p.id][p.anim.key] || ANIM_CONFIG[p.id].caminar;
+const entry = spriteCache[cfg.src];
+const cx = p.x + p.w / 2, feet = p.y + p.h;
+let gy = null;
+for (const pl of world.platforms) if (overlapX(p, pl, 0) && pl.y >= feet - 2 && pl.y < feet + 90) { if (gy === null || pl.y < gy) gy = pl.y; }
+if (gy !== null) { const k = 1 - (gy - feet) / 90; ctx.fillStyle = 'rgba(3,5,12,' + (0.28 * k) + ')'; ctx.beginPath(); ctx.ellipse(cx, gy + 3, 14 * k + 4, 3.5, 0, 0, 6.3); ctx.fill(); }
+const sq = p.squash, sy = 1 - sq, sx = 1 + sq * 0.7;
+ctx.save();
+ctx.translate(cx, feet); ctx.scale(p.facing * sx, sy);
+if (p.anim.key === 'colgado') ctx.rotate(Math.sin(t * 3) * 0.06 + clamp(p.vx * 0.0004, -0.2, 0.2));
+if (entry && entry.ready) {
+const img = entry.img;
+const frameWidth = img.width / ANIM_CONFIG.cols;
+const frameHeight = img.height / ANIM_CONFIG.rows;
+const col = p.anim.frame % ANIM_CONFIG.cols, row = Math.floor(p.anim.frame / ANIM_CONFIG.cols);
+const dh = p.h + 6, dw = dh * (frameWidth / frameHeight);
+ctx.drawImage(img, col * frameWidth, row * frameHeight, frameWidth, frameHeight, -dw / 2, -dh, dw, dh);
+} else {
+drawFallbackBody(p, t);
+}
+ctx.restore();
+const name = p.id === 'devas' ? 'DEVAS' : 'FREYA';
+const nc = p.id === 'devas' ? '#5fb0ff' : '#ff7ad0';
+ctx.font = '800 9px Nunito'; ctx.textAlign = 'center';
+const nw = ctx.measureText(name).width + 10;
+ctx.fillStyle = 'rgba(6,9,20,0.7)'; rr(ctx, cx - nw / 2, p.y - 18, nw, 12, 6); ctx.fill();
+ctx.fillStyle = nc; ctx.fillText(name, cx, p.y - 9);
+if (!(entry && entry.ready)) {
+const pose = p.anim.key;
+ctx.font = '700 8.5px Nunito';
+const pw = ctx.measureText(pose).width + 10;
+ctx.fillStyle = 'rgba(6,9,20,0.78)'; rr(ctx, cx - pw / 2, feet + 5, pw, 12, 6); ctx.fill();
+ctx.strokeStyle = nc; ctx.lineWidth = 1; rr(ctx, cx - pw / 2, feet + 5, pw, 12, 6); ctx.stroke();
+ctx.fillStyle = '#eaf1ff'; ctx.fillText(pose, cx, feet + 14);
+}
+}
+function drawFallbackBody(p, t) {
+const w = p.w, h = p.h, k = p.anim.key, f = p.anim.frame;
+const isD = p.id === 'devas';
+const c1 = isD ? '#7cc2ff' : '#ffa4de', c2 = isD ? '#2b6fd0' : '#d84fa0';
+const belly = isD ? '#dcecff' : '#ffe4f5';
+const walkPh = (f / ANIM_CONFIG.totalFrames) * Math.PI * 2;
+const moving = (k === 'caminar' || k === 'correr') && !p.idleAnim;
+const bob = moving ? Math.abs(Math.sin(walkPh)) * 2.5 : Math.sin(t * 2 + (isD ? 0 : 2)) * 1.2;
+if (k === 'correr') ctx.rotate(-0.09);
+ctx.strokeStyle = isD ? '#ffd36e' : '#b46bff'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+ctx.beginPath(); ctx.moveTo(-w * 0.18, -h * 0.66);
+ctx.quadraticCurveTo(-w * 0.6 - p.vx * 0.02, -h * 0.6 + Math.sin(t * 6) * 2, -w * 0.85 - p.vx * 0.03, -h * 0.5 + Math.sin(t * 6 + 1) * 3);
+ctx.stroke();
+if (isD && !p.anchored) {
+ctx.save(); ctx.rotate(-0.6); ctx.fillStyle = '#cfe0ff'; ctx.fillRect(-3, -h * 0.95, 6, h * 0.55);
+ctx.fillStyle = '#ffd36e'; ctx.fillRect(-7, -h * 0.42, 14, 4); ctx.restore();
+}
+const bg = ctx.createLinearGradient(0, -h, 0, 0); bg.addColorStop(0, c1); bg.addColorStop(1, c2);
+ctx.fillStyle = bg; rr(ctx, -w / 2, -h - bob, w, h + bob, w / 2); ctx.fill();
+ctx.fillStyle = belly; ctx.beginPath(); ctx.ellipse(w * 0.06, -h * 0.40 - bob * 0.5, w * 0.30, h * 0.30, 0, 0, 6.3); ctx.fill();
+ctx.fillStyle = c2;
+const wing = (wx, wy, rot, len) => { len = len || 13; ctx.save(); ctx.translate(wx, wy); ctx.rotate(rot); ctx.beginPath(); ctx.ellipse(0, len / 2, 4.5, len / 2, 0, 0, 6.3); ctx.fill(); ctx.restore(); };
+if (k === 'colgado' || k === 'rescatado') { wing(-w * 0.32, -h * 0.72, 2.6); wing(w * 0.32, -h * 0.72, -2.6); }
+else if (k === 'rescatar') { const pull = Math.sin(walkPh) * 0.5; wing(w * 0.34, -h * 0.6, -1.2 + pull, 15); wing(w * 0.2, -h * 0.5, -1.0 - pull, 15); }
+else if (k === 'saltar') { wing(-w * 0.36, -h * 0.6, 2.2); wing(w * 0.36, -h * 0.6, -2.2); }
+else if (k === 'caer') { wing(-w * 0.38, -h * 0.66, 2.9 + Math.sin(t * 14) * 0.2); wing(w * 0.38, -h * 0.66, -2.9 - Math.sin(t * 14) * 0.2); }
+else if (k === 'anclar') { wing(-w * 0.34, -h * 0.55, 0.4); wing(w * 0.34, -h * 0.5, -0.5, 16); }
+else if (k === 'agacharse') { wing(-w * 0.3, -h * 0.5, 0.2, 9); wing(w * 0.3, -h * 0.5, -0.2, 9); }
+else { const sw = moving ? Math.sin(walkPh) * 0.5 : 0; wing(-w * 0.36, -h * 0.55, 0.25 + sw); wing(w * 0.36, -h * 0.55, -0.25 - sw); }
+const ey = -h * 0.78 - bob, ex = w * 0.13;
+const blinkS = p.blink > 0 ? 0.12 : 1;
+const happy = k === 'rescatado';
+for (const side of [-1, 1]) {
+const ox = ex + side * 6.5;
+if (happy) { ctx.strokeStyle = '#1a2440'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ox, ey + 2, 3.5, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke(); }
+else {
+ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(ox, ey, 4.4, 4.4 * blinkS, 0, 0, 6.3); ctx.fill();
+ctx.fillStyle = '#141b33'; ctx.beginPath(); ctx.ellipse(ox + 1.6, ey + (k === 'caer' ? 1 : 0), 2.1, 2.1 * blinkS, 0, 0, 6.3); ctx.fill();
+}
+}
+ctx.fillStyle = '#f0a832'; ctx.beginPath(); ctx.moveTo(w * 0.24, ey + 5); ctx.lineTo(w * 0.44, ey + 8); ctx.lineTo(w * 0.24, ey + 11); ctx.closePath(); ctx.fill();
+if (isD) { ctx.fillStyle = '#cfe0ff'; rr(ctx, -w / 2 + 3, -h * 0.94 - bob, w - 6, 5, 2); ctx.fill(); ctx.fillStyle = '#ffd36e'; ctx.fillRect(-2, -h * 0.94 - bob, 4, 5); }
+else {
+ctx.fillStyle = '#ff3d81'; const by = -h - bob + 3;
+ctx.beginPath(); ctx.moveTo(-2, by); ctx.lineTo(-13, by - 7); ctx.lineTo(-11, by + 5); ctx.closePath(); ctx.fill();
+ctx.beginPath(); ctx.moveTo(2, by); ctx.lineTo(13, by - 7); ctx.lineTo(11, by + 5); ctx.closePath(); ctx.fill();
+ctx.fillStyle = '#ffd36e'; ctx.beginPath(); ctx.arc(0, by, 3, 0, 6.3); ctx.fill();
+}
+ctx.fillStyle = '#f0a832';
+const fo = moving ? Math.sin(walkPh) * 3 : 0, tuck = p.onGround ? 0 : 4;
+ctx.beginPath(); ctx.ellipse(-w * 0.18, -2 - tuck + fo, 6, 3.4, 0, 0, 6.3); ctx.fill();
+ctx.beginPath(); ctx.ellipse(w * 0.18, -2 - tuck - fo, 6, 3.4, 0, 0, 6.3); ctx.fill();
+if (isD && p.anchored) {
+ctx.fillStyle = '#cfe0ff'; ctx.fillRect(w * 0.42, -16, 5, 26);
+ctx.fillStyle = '#ffd36e'; ctx.fillRect(w * 0.42 - 5, -16, 15, 4);
+ctx.fillStyle = '#8a5f14'; ctx.fillRect(w * 0.42 + 0.5, -22, 4, 7);
+ctx.fillStyle = 'rgba(255,255,255,' + (0.4 + 0.3 * Math.sin(t * 5)) + ')'; ctx.fillRect(w * 0.42 + 1, -12, 1.5, 14);
+}
+}
+function drawParticles() {
+for (const p of parts) {
+const a = clamp(p.life / p.max, 0, 1);
+switch (p.k) {
+case 'dust': ctx.fillStyle = 'rgba(220,230,250,' + (0.5 * a) + ')'; ctx.beginPath(); ctx.arc(p.x, p.y, p.s * (1.6 - a * 0.6), 0, 6.3); ctx.fill(); break;
+case 'spark': ctx.strokeStyle = p.c; ctx.globalAlpha = a; ctx.lineWidth = p.s; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 0.03, p.y - p.vy * 0.03); ctx.stroke(); ctx.globalAlpha = 1; break;
+case 'ring': ctx.strokeStyle = 'rgba(255,211,110,' + a + ')'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(p.x, p.y, p.s + (1 - a) * 26, (p.s + (1 - a) * 26) * 0.35, 0, 0, 6.3); ctx.stroke(); break;
+case 'pop': ctx.fillStyle = p.c; ctx.globalAlpha = a; ctx.fillRect(p.x - p.s / 2, p.y - p.s / 2, p.s, p.s); ctx.globalAlpha = 1; break;
+case 'heart': ctx.fillStyle = 'rgba(255,95,168,' + a + ')'; ctx.save(); ctx.translate(p.x, p.y); ctx.scale(p.s / 6, p.s / 6);
+ctx.beginPath(); ctx.moveTo(0, 3); ctx.bezierCurveTo(-6, -3, -3, -8, 0, -4); ctx.bezierCurveTo(3, -8, 6, -3, 0, 3); ctx.fill(); ctx.restore(); break;
+case 'ember': ctx.fillStyle = 'rgba(255,' + (150 + Math.floor(80 * a)) + ',60,' + (a * 0.9) + ')'; ctx.beginPath(); ctx.arc(p.x, p.y, p.s * a + 0.5, 0, 6.3); ctx.fill(); break;
+case 'conf': ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.c; ctx.globalAlpha = a; ctx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * 0.66); ctx.restore(); ctx.globalAlpha = 1; break;
+}
+}
+}
+function drawGoalArrow() {
+if (ctl.mode !== 'playing' || ctl.won) return;
+const g = world.def.goal.fire;
+const sx = g.x - cam.x + viewW / 2, sy = g.y - 40 - cam.y + VIEW_H / 2;
+if (sx > 20 && sx < viewW - 20 && sy > 20 && sy < VIEW_H - 20) return;
+const px = clamp(sx, 30, viewW - 30), py = clamp(sy, 70, VIEW_H - 40);
+const ang = Math.atan2(sy - py, sx - px);
+ctx.save(); ctx.translate(px, py); ctx.rotate(ang);
+ctx.fillStyle = 'rgba(255,211,110,0.9)';
+ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(-6, -8); ctx.lineTo(-2, 0); ctx.lineTo(-6, 8); ctx.closePath(); ctx.fill();
+ctx.restore();
+ctx.fillStyle = 'rgba(6,9,20,0.7)'; rr(ctx, px - 20, py + 12, 40, 13, 6); ctx.fill();
+ctx.fillStyle = '#ffd36e'; ctx.font = '800 9px Nunito'; ctx.textAlign = 'center'; ctx.fillText('CIMA 🔥', px, py + 22);
+}
+const dlgCtx = D.dlgCanvas.getContext('2d');
+function drawPortrait() {
+if (!ctl.dialog) return;
+const who = ctl.dialog.def.speaker;
+dlgCtx.setTransform(1, 0, 0, 1, 0, 0); dlgCtx.clearRect(0, 0, 112, 112);
+const fake = { id: who, w: 36, h: 54, facing: 1, vx: 0, vy: 0, onGround: true, anchored: false, idleAnim: false, blink: 0, anim: { key: 'caminar', frame: Math.floor(world.time * ANIM_CONFIG.fps) % 12 } };
+dlgCtx.save(); dlgCtx.translate(56, 100); dlgCtx.scale(1.55, 1.55);
+drawFallbackBody(fake, world.time);
+dlgCtx.restore();
+}
+
+/* ═══════════ [9] INPUT · teclado + táctil + IA ═══════════ */
+const Keys = {}, Touch = { left: false, right: false, jump: false, down: false, anchor: false, contract: false };
+let touchMode = store.lget('df1.touch', 'auto');
+const coarse = () => (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || 'ontouchstart' in window;
+function applyTouchVisibility() {
+const on = touchMode === 'on' || (touchMode === 'auto' && coarse());
+document.body.classList.toggle('touch-on', on && ctl.mode === 'playing');
+D.touch.style.display = (on && ctl.mode === 'playing') ? 'block' : 'none';
+D.btnTouchP.textContent = '🎮 Táctil: ' + (touchMode === 'auto' ? 'auto' : touchMode === 'on' ? 'siempre' : 'oculto');
+D.btnSwitch.classList.toggle('hidden', !(ctl.role === 'practice' && on));
+}
+function bindInput() {
+const KEYMAP = {
+ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
+ArrowUp: 'jump', KeyW: 'jump', Space: 'jump', ArrowDown: 'down', KeyS: 'down',
+KeyE: 'anchor', KeyK: 'anchor', KeyQ: 'contract', KeyJ: 'contract', ShiftLeft: 'run', ShiftRight: 'run'
+};
+const latchPress = act => {
+if (ctl.role !== 'freya') return;
+if (act === 'jump') netLatch.jump = true;
+if (act === 'anchor') netLatch.anchor = true;
+};
+window.addEventListener('keydown', e => {
+SFX.init();
+if (ctl.dialog) { if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); D.btnDlg.click(); } return; }
+if (e.code === 'Escape') { e.preventDefault(); if (ctl.mode === 'playing') togglePause(); return; }
+if (e.code === 'KeyM') { SFX.setEnabled(!SFX.enabled); return; }
+if (ctl.mode !== 'playing') return;
+if ((e.code === 'Tab' || e.code === 'KeyC') && ctl.role === 'practice' && !e.repeat) { e.preventDefault(); switchChar(); return; }
+const act = KEYMAP[e.code];
+if (act) {
+e.preventDefault();
+Keys[act] = true;
+if (!e.repeat) latchPress(act);
+}
+});
+window.addEventListener('keyup', e => { const act = KEYMAP[e.code]; if (act) Keys[act] = false; });
+window.addEventListener('blur', clearAllInputs);
+document.querySelectorAll('#touch [data-act]').forEach(btn => {
+const act = btn.dataset.act;
+const down = e => {
+e.preventDefault(); SFX.init();
+Touch[act] = true; btn.classList.add('active');
+latchPress(act);
+try { btn.setPointerCapture(e.pointerId); } catch (err) {}
+};
+const up = e => { e.preventDefault(); Touch[act] = false; btn.classList.remove('active'); };
+btn.addEventListener('pointerdown', down);
+btn.addEventListener('pointerup', up);
+btn.addEventListener('pointercancel', up);
+btn.addEventListener('contextmenu', e => e.preventDefault());
+});
+D.btnSwitch.addEventListener('click', () => { SFX.init(); switchChar(); });
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('pointerdown', () => SFX.init());
+}
+function clearAllInputs() {
+for (const k in Keys) Keys[k] = false;
+for (const k in Touch) Touch[k] = false;
+document.querySelectorAll('.tbtn.active').forEach(b => b.classList.remove('active'));
+}
+function myPlayer() {
+if (!world) return null;
+if (ctl.role === 'freya') return world.players.freya;
+if (ctl.role === 'practice') return world.players[ctl.activeChar];
+return world.players.devas;
+}
+function gatherInputs() {
+const me = myPlayer(); if (!me) return;
+const I = me.inputs;
+I.left = !!(Keys.left || Touch.left); I.right = !!(Keys.right || Touch.right);
+I.jump = !!(Keys.jump || Touch.jump); I.down = !!(Keys.down || Touch.down);
+I.anchor = !!(Keys.anchor || Touch.anchor); I.contract = !!(Keys.contract || Touch.contract);
+I.run = !!Keys.run;
+if (ctl.role === 'freya') {
+if (I.jump && !netPrev.jump) netLatch.jump = true;
+if (I.anchor && !netPrev.anchor) netLatch.anchor = true;
+netPrev.jump = I.jump; netPrev.anchor = I.anchor;
+}
+if (ctl.role === 'practice') {
+const ai = world.players[ctl.activeChar === 'devas' ? 'freya' : 'devas'];
+if (ctl.aiAssist) aiInputs(ai, me);
+else { for (const k in ai.inputs) ai.inputs[k] = false; }
+}
+}
+function aiInputs(ai, hero) {
+const I = ai.inputs;
+for (const k in I) I[k] = false;
+const dx = hero.x - ai.x, dy = hero.y - ai.y, adx = Math.abs(dx);
+const pulse = (world.time % 0.5) < 0.25;
+if (hero.hanging && ai.onGround) { I.contract = true; I.down = true; return; }
+if (ai.hanging) { I.jump = pulse; I.left = dx < -12; I.right = dx > 12; return; }
+if (ai.anchored) { I.anchor = pulse && adx > 90; return; }
+if (adx > 66) {
+const dir = Math.sign(dx);
+const probeX = ai.x + ai.w / 2 + dir * 34;
+let ground = false;
+for (const pl of world.platforms) {
+if (probeX > pl.x && probeX < pl.x + pl.w && pl.y >= ai.y + ai.h - 6 && pl.y < ai.y + ai.h + 70) { ground = true; break; }
+}
+if (ground || !ai.onGround) { I.left = dir < 0; I.right = dir > 0; }
+else if (dy < 30) { I.left = dir < 0; I.right = dir > 0; I.jump = pulse; }
+if (ai.onGround && dy < -46 && adx < 170) I.jump = pulse;
+} else if (ai.onGround && dy > 90) I.down = true;
+}
+function switchChar() {
+if (ctl.role !== 'practice') return;
+const me = myPlayer(); for (const k in me.inputs) me.inputs[k] = false;
+ctl.activeChar = ctl.activeChar === 'devas' ? 'freya' : 'devas';
+clearAllInputs();
+toast('🎮 Ahora controlas a ' + (ctl.activeChar === 'devas' ? 'DEVAS' : 'FREYA'), 1.4);
+SFX.play('ui'); updateRoleChip(); applyTouchVisibility();
+}
+function toggleAI() {
+ctl.aiAssist = !ctl.aiAssist;
+updateAIUI(); SFX.play('ui');
+toast(ctl.aiAssist ? '🤖 Compañera IA activada' : '👤 Compañera manual (TAB)', 1.8);
+}
+function updateAIUI() {
+const on = ctl.aiAssist;
+D.btnAI.classList.toggle('on', on);
+D.btnAI.textContent = on ? '🤖' : '👤';
+D.btnAIP.textContent = on ? '🤖 Compañera IA: activada' : '👤 Compañera IA: apagada';
+const show = ctl.role === 'practice';
+D.btnAI.classList.toggle('hidden', !show);
+D.btnAIP.classList.toggle('hidden', !show);
+}
+
+/* ═══════════ [10] RED P2P · PeerJS ═══════════ */
+const isAuthority = () => ctl.role !== 'freya';
+function genCode() { let c = ''; for (let i = 0; i < 5; i++) c += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)]; return c; }
+function buildLink(code) { return location.href.split('#')[0].split('?')[0] + '?sala=' + code; }
+const netLatch = { jump: false, anchor: false };
+const netPrev = { jump: false, anchor: false };
+const netHold = { jump: false, anchor: false };
+const netDefer = { jump: false, anchor: false };
+const Net = {
+peer: null, conn: null, open: false, code: null, mode: null,
+hbTimer: null, retryTimer: null, retryN: 0, idRetries: 0, lastRecv: 0,
+snapAcc: 0, inputAcc: 0, lastInput: '', resumePending: false, destroyed: true,
+send(o) { if (this.conn && this.conn.open) { try { this.conn.send(o); } catch (e) {} } },
+destroy() {
+this.destroyed = true;
+if (this.hbTimer) { clearInterval(this.hbTimer); this.hbTimer = null; }
+if (this.retryTimer) { clearTimeout(this.retryTimer); this.retryTimer = null; }
+try { if (this.conn) this.conn.close(); } catch (e) {}
+try { if (this.peer) this.peer.destroy(); } catch (e) {}
+this.peer = null; this.conn = null; this.open = false; this.retryN = 0; this.lastInput = '';
+setNetDot('off');
+},
+startHeartbeat() {
+if (this.hbTimer) clearInterval(this.hbTimer);
+this.hbTimer = setInterval(() => {
+this.send({ t: 'hb' });
+if (this.open && performance.now() - this.lastRecv > 6000) setNetDot('warn');
+}, 1000);
+},
+host(code, resume) {
+const keep = this.idRetries;
+this.destroy(); this.destroyed = false;
+this.idRetries = resume ? keep : 0;
+this.mode = 'host'; this.code = code || genCode(); this.resumePending = !!resume;
+if (typeof Peer === 'undefined') { toast('⚠️ PeerJS no disponible. Revisa tu conexión o usa Práctica.'); refreshMenuPanels(); return; }
+D.roomCode.textContent = this.code; D.roomLink.textContent = buildLink(this.code);
+D.roomStatus.textContent = resume ? 'Sala restaurada — esperando a Freya…' : 'Creando sala…';
+const peer = new Peer(PEER_PREFIX + this.code, { debug: 0 });
+this.peer = peer;
+peer.on('open', () => { if (this.destroyed) return; this.idRetries = 0; D.roomStatus.textContent = resume ? 'Sala restaurada — esperando a Freya…' : 'Esperando a Freya…'; setNetDot('warn'); saveSession(); });
+peer.on('connection', c => {
+if (this.destroyed) return;
+if (this.conn && this.conn.open) { try { c.close(); } catch (e) {} return; }
+this.conn = c; this.wireConn(c, 'host');
+});
+peer.on('disconnected', () => { if (!this.destroyed) { try { peer.reconnect(); } catch (e) {} } });
+peer.on('error', err => {
+if (this.destroyed) return;
+const type = err && err.type;
+if (type === 'unavailable-id') {
+if (this.resumePending && this.idRetries < 6) {
+this.idRetries++; D.roomStatus.textContent = 'Recuperando código de sala…';
+setTimeout(() => { if (!this.destroyed) this.host(this.code, true); }, 1400);
+} else { toast('Código en uso: generado uno nuevo'); this.host(genCode(), false); }
+} else if (type === 'network' || type === 'server-error' || type === 'socket-error') {
+D.roomStatus.textContent = 'Reconectando al servicio P2P…';
+setTimeout(() => { try { if (!this.destroyed && this.peer && !this.peer.destroyed) this.peer.reconnect(); } catch (e) {} }, 1500);
+} else if (type === 'browser-incompatible') toast('⚠️ Navegador no compatible con P2P. Usa Práctica local.');
+});
+this.startHeartbeat();
+refreshMenuPanels();
+},
+guest(code) {
+this.destroy(); this.destroyed = false;
+this.mode = 'guest'; this.code = code; this.retryN = 0;
+if (typeof Peer === 'undefined') { D.joinStatus.textContent = 'PeerJS no disponible. Revisa tu conexión.'; refreshMenuPanels(); return; }
+const peer = new Peer({ debug: 0 }); this.peer = peer;
+peer.on('open', () => { if (!this.destroyed) this.connectGuest(); });
+peer.on('disconnected', () => { if (!this.destroyed) { try { peer.reconnect(); } catch (e) {} } });
+peer.on('error', err => {
+if (this.destroyed) return;
+const type = err && err.type;
+if (type === 'peer-unavailable') this.scheduleRetry('Buscando la sala de Devas…');
+else if (type === 'network' || type === 'server-error' || type === 'socket-error') this.scheduleRetry('Reconectando al servicio P2P…');
+else if (type === 'browser-incompatible') D.joinStatus.textContent = 'Navegador no compatible con P2P.';
+});
+this.startHeartbeat();
+refreshMenuPanels();
+},
+connectGuest() {
+if (this.destroyed || !this.peer || this.peer.destroyed) return;
+try { if (this.conn) this.conn.close(); } catch (e) {}
+const c = this.peer.connect(PEER_PREFIX + this.code, { reliable: true });
+this.conn = c; this.wireConn(c, 'guest');
+},
+scheduleRetry(msg) {
+if (this.destroyed || this.retryTimer) return;
+if (this.retryN >= 24) {
+if (ctl.mode === 'playing') showBanner('reconnect', 'No se pudo reconectar con Devas. 💔');
+else D.joinStatus.textContent = 'No se encontró la sala. Pídele a Devas que la cree.';
+return;
+}
+this.retryN++;
+if (ctl.mode === 'playing') showBanner('reconnect', 'Conexión perdida. Reintentando… (' + this.retryN + '/24)');
+else D.joinStatus.textContent = msg + ' (' + this.retryN + ')';
+this.retryTimer = setTimeout(() => { this.retryTimer = null; if (!this.destroyed && !this.open) this.connectGuest(); }, 2500);
+},
+wireConn(c, side) {
+c.on('open', () => {
+if (this.destroyed) return;
+this.open = true; this.lastRecv = performance.now(); this.retryN = 0; setNetDot('ok');
+if (side === 'guest') {
+const sess = store.get('df1.session');
+this.send({ t: 'hello', resume: !!(sess && sess.code === this.code && sess.role === 'guest') });
+D.joinStatus.textContent = '¡Conectada! Preparando la escalada…';
+} else D.roomStatus.textContent = '¡Freya se ha unido! 💗';
+});
+c.on('data', d => { this.lastRecv = performance.now(); setNetDot('ok'); if (d && typeof d === 'object') onData(d, side); });
+c.on('close', () => {
+if (this.destroyed) return;
+this.open = false; ctl.paused.away = false; setNetDot('off');
+if (side === 'host') {
+if (ctl.mode === 'playing') { ctl.paused.wait = true; showBanner('wait', 'Freya se desconectó. La partida está a salvo, esperando reconexión… 💛'); }
+else D.roomStatus.textContent = 'Esperando a Freya…';
+} else {
+if (ctl.mode === 'playing') this.scheduleRetry('Reconectando con Devas…');
+else { D.joinStatus.textContent = 'Conexión cerrada. Reintentando…'; this.scheduleRetry('Reconectando…'); }
+}
+});
+c.on('error', () => { if (!this.destroyed && side === 'guest') this.scheduleRetry('Reconectando…'); });
+}
+};
+function onData(d, side) {
+if (side === 'host') {
+switch (d.t) {
+case 'hello': {
+netHold.jump = false; netHold.anchor = false;
+netDefer.jump = false; netDefer.anchor = false;
+if (ctl.mode === 'playing') {
+ctl.paused.wait = false; ctl.paused.away = false; hideBanner();
+Net.send({ t: 'rejoin', s: buildSnap(), dlg: ctl.dialog ? { id: ctl.dialog.def.id, line: ctl.dialog.line } : null });
+toast('💛 Freya volvió. ¡Siguen escalando!');
+} else if (Net.resumePending) {
+Net.resumePending = false;
+Net.send({ t: 'go', s: buildSnap(), resume: true, diff: ctl.diff });
+beginRun(true);
+} else {
+fullReset();
+Net.send({ t: 'go', s: buildSnap(), resume: false, diff: ctl.diff });
+beginRun(false);
+}
+break;
+}
+case 'i': {
+const I = world.players.freya.inputs;
+I.left = !!d.l; I.right = !!d.r; I.down = !!d.d; I.contract = !!d.c; I.run = !!d.u;
+const vals = { jump: !!d.j, anchor: !!d.a };
+for (const k in vals) {
+if (vals[k]) {
+I[k] = true;
+netHold[k] = true;
+netDefer[k] = false;
+} else if (netHold[k]) {
+netDefer[k] = true;
+} else {
+I[k] = false;
+}
+}
+break;
+}
+case 'dc': dialogConfirm('freya'); break;
+case 'pzr': setNetPause(!!d.v); break;
+case 'rst': if (ctl.mode === 'playing') { fullReset(); Net.send({ t: 'go', s: buildSnap(), resume: false, diff: ctl.diff }); beginRun(false); } break;
+case 'sync': Net.send({ t: 's', ...buildSnap() }); if (ctl.dialog) Net.send({ t: 'd', id: ctl.dialog.def.id, line: ctl.dialog.line }); break;
+case 'away': ctl.paused.away = true; ctl.awayT = 0; showBanner('away', '💛 Freya está en otra app. Todo los espera aquí.'); break;
+case 'back': ctl.paused.away = false; ctl.awayT = 0; if (bannerKind === 'away') hideBanner(); break;
+case 'bye': ctl.paused.wait = true; showBanner('wait', 'Freya volvió al menú principal.'); break;
+case 'hb': break;
+}
+} else {
+switch (d.t) {
+case 'go': ctl.diff = d.diff || ctl.diff; applySnap(d.s); beginRun(!!d.resume); break;
+case 'rejoin': applySnap(d.s); ctl.paused.wait = false; ctl.paused.away = false; hideBanner(); if (d.dlg) openDialog(d.dlg.id, d.dlg.line, false); if (!ctl.started) beginRun(true); toast('💛 Conexión restaurada'); break;
+case 's': applySnap(d); break;
+case 'd': openDialog(d.id, d.line, false); break;
+case 'dack': if (ctl.dialog) { ctl.dialog.conf[d.who] = true; updateDialogUI(); } break;
+case 'dnext': if (ctl.dialog) { if (d.line < 0) closeDialog(); else { ctl.dialog.line = d.line; ctl.dialog.typed = 0; ctl.dialog.conf = { devas: false, freya: false }; updateDialogUI(); } } break;
+case 'e': fxLocal(d.k, d.x, d.y, d.v); break;
+case 'pz': setNetPauseUI(!!d.v); break;
+case 'away': ctl.paused.away = true; ctl.awayT = 0; showBanner('away', '💛 Devas está en otra app. Todo los espera aquí.'); break;
+case 'back': ctl.paused.away = false; ctl.awayT = 0; if (bannerKind === 'away') hideBanner(); break;
+case 'bye': ctl.paused.wait = true; showBanner('wait', 'Devas volvió al menú principal.'); break;
+case 'hb': break;
+}
+}
+}
+function buildSnap() {
+const pack = p => {
+let fl = 0;
+if (p.onGround) fl |= 1; if (p.anchored) fl |= 2; if (p.crouch) fl |= 4; if (p.hanging) fl |= 8;
+if (p.rescuing) fl |= 16; if (p.beingRescued) fl |= 32; if (p.idleAnim) fl |= 64;
+return [Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10, Math.round(p.vx), Math.round(p.vy), p.facing, fl, p.animKey];
+};
+return {
+wt: Math.round(world.time * 1000) / 1000, rl: Math.round(world.ropeLen * 10) / 10,
+ct: (world.contracting ? 1 : 0) | (world.taut ? 2 : 0),
+cnt: Math.round(ctl.count * 100) / 100,
+pz: ctl.paused.pause ? 1 : 0,
+ck: ctl.checkpoint, fa: ctl.falls, rs: ctl.rescues, sh: ctl.shards, tm: Math.round(ctl.playT * 10) / 10,
+win: ctl.won ? 1 : 0, dn: [...world.dialogsDone],
+pl: [pack(world.players.devas), pack(world.players.freya)]
+};
+}
+function applySnap(s) {
+if (!world || !s || !s.pl) return;
+world.time = s.wt; world.ropeTarget = s.rl;
+world.contracting = !!(s.ct & 1);
+world.taut = !!(s.ct & 2);
+if (s.cnt !== undefined) ctl.count = s.cnt;
+if (!ctl.started) {
+world.ropeLen = s.rl;
+netLatch.jump = false; netLatch.anchor = false;
+netPrev.jump = false; netPrev.anchor = false;
+}
+ctl.checkpoint = s.ck; ctl.falls = s.fa; ctl.rescues = s.rs; ctl.shards = s.sh || 0; ctl.playT = s.tm;
+world.dialogsDone = new Set(s.dn || []);
+const ids = ['devas', 'freya'];
+let teleported = false;
+s.pl.forEach((a, i) => {
+const p = world.players[ids[i]];
+p.tx = a[0]; p.ty = a[1]; p.vx = a[2]; p.vy = a[3]; p.facing = a[4];
+const fl = a[5];
+p.onGround = !!(fl & 1); p.anchored = !!(fl & 2); p.crouch = !!(fl & 4); p.hanging = !!(fl & 8);
+p.rescuing = !!(fl & 16); p.beingRescued = !!(fl & 32); p.idleAnim = !!(fl & 64);
+p.hh = p.crouch ? PHYS.hCrouch : PHYS.hStand;
+p.animKey = a[6];
+if (!ctl.started) { p.x = p.tx; p.y = p.ty; teleported = true; }
+else if (Math.hypot(p.tx - p.x, p.ty - p.y) > 140) { p.x = p.tx; p.y = p.ty; teleported = true; }
+});
+if (teleported) cam.snap = true;
+updateMovers();
+if (s.pz !== undefined && ctl.mode === 'playing') setNetPauseUI(!!s.pz);
+if (s.win && !ctl.won) { ctl.won = true; ctl.paused.won = true; ctl.winDelay = 1.1; }
+}
+function netTick(dt) {
+if (!Net.open) return;
+if (isAuthority()) {
+Net.snapAcc += dt;
+if (Net.snapAcc >= 0.05) { Net.snapAcc = 0; Net.send({ t: 's', ...buildSnap() }); }
+} else {
+Net.inputAcc += dt;
+const I = world.players.freya.inputs;
+const j = I.jump || netLatch.jump;
+const a = I.anchor || netLatch.anchor;
+const packed = [I.left, I.right, j, I.down, a, I.contract, I.run].map(v => v ? 1 : 0).join('');
+const pending = netLatch.jump || netLatch.anchor;
+if (packed !== Net.lastInput || Net.inputAcc >= 0.12 || pending) {
+if (Net.conn && Net.conn.open) {
+Net.send({ t: 'i', l: I.left, r: I.right, j: j, d: I.down, a: a, c: I.contract, u: I.run });
+Net.lastInput = packed;
+Net.inputAcc = 0;
+netLatch.jump = false;
+netLatch.anchor = false;
+}
+}
+}
+}
+function buildSession() {
+if (!world || !Net.code) return null;
+return {
+v: 1, role: ctl.role, code: Net.code, diff: ctl.diff, started: ctl.started,
+ck: ctl.checkpoint, fa: ctl.falls, rs: ctl.rescues, sh: ctl.shards, tm: ctl.playT, wt: world.time, rl: world.ropeLen,
+dn: [...world.dialogsDone],
+pl: { d: [world.players.devas.x, world.players.devas.y], f: [world.players.freya.x, world.players.freya.y] }
+};
+}
+function saveSession() { if (ctl.role === 'devas' || ctl.role === 'freya') { const s = buildSession(); if (s) store.set('df1.session', s); } }
+function applySession(s) {
+if (!s) return;
+ctl.diff = s.diff || 'adventure'; ctl.checkpoint = s.ck || 0; ctl.falls = s.fa || 0; ctl.rescues = s.rs || 0;
+ctl.shards = s.sh || 0; ctl.playT = s.tm || 0;
+world.time = s.wt || 0; world.ropeLen = world.ropeTarget = s.rl || MAX_ROPE;
+world.dialogsDone = new Set(s.dn || []);
+if (s.pl) { placeAt(world.players.devas, { x: s.pl.d[0], y: s.pl.d[1] }); placeAt(world.players.freya, { x: s.pl.f[0], y: s.pl.f[1] }); }
+updateMovers(); cam.snap = true;
+}
+function bindVisibility() {
+if (bindVisibility._bound) return;
+bindVisibility._bound = true;
+let awaySent = false;
+const goAway = () => {
+if (awaySent) return;
+awaySent = true;
+saveSession();
+clearAllInputs();
+if (isAuthority() && Net.open) Net.send({ t: 's', ...buildSnap() });
+Net.send({ t: 'away' });
+if (Net.open) setNetDot('warn');
+if (SFX.ctx && SFX.ctx.state === 'running') SFX.ctx.suspend();
+};
+const comeBack = () => {
+resetFrameClock();
+awaySent = false;
+Net.send({ t: 'back' });
+if (ctl.role === 'freya') Net.send({ t: 'sync' });
+if (SFX.ctx && SFX.enabled && SFX.ctx.state === 'suspended') SFX.ctx.resume();
+if (Net.open) {
+Net.lastRecv = performance.now();
+setNetDot('ok');
+} else if (!Net.destroyed && ctl.mode === 'playing') {
+if (ctl.role === 'freya') {
+Net.scheduleRetry('Reconectando con Devas…');
+} else {
+try {
+if (Net.peer && !Net.peer.destroyed && Net.peer.disconnected) Net.peer.reconnect();
+} catch (e) {}
+}
+}
+};
+document.addEventListener('visibilitychange', () => {
+if (document.hidden) goAway(); else comeBack();
+});
+window.addEventListener('pagehide', goAway);
+document.addEventListener('freeze', goAway);
+document.addEventListener('resume', comeBack);
+window.addEventListener('pageshow', e => { if (e && e.persisted) comeBack(); });
+}
+window.addEventListener('beforeunload', saveSession);
+setInterval(() => { if (ctl.mode === 'playing' && !document.hidden) saveSession(); }, 2500);
+
+/* ═══════════ [11] UI ═══════════ */
+let bannerKind = null;
+function showBanner(kind, text) {
+bannerKind = kind; D.banner.classList.remove('hidden'); D.bannerText.textContent = text;
+document.body.classList.add('banner-on');
+const btns = kind !== 'away';
+D.btnBannerA.classList.toggle('hidden', !btns); D.btnBannerB.classList.toggle('hidden', !btns);
+D.bannerSpin.classList.toggle('hidden', kind === 'wait' && text.indexOf('menú') >= 0);
+}
+function hideBanner() { bannerKind = null; D.banner.classList.add('hidden'); document.body.classList.remove('banner-on'); }
+function setNetDot(state) { D.netDot.className = state; }
+function updateRoleChip() {
+const el = D.chipRole;
+el.classList.remove('devas', 'freya', 'practice');
+if (ctl.role === 'devas') { el.classList.add('devas'); D.chipRoleTxt.textContent = 'DEVAS'; el.title = 'Jugador 1 · Anfitrión'; }
+else if (ctl.role === 'freya') { el.classList.add('freya'); D.chipRoleTxt.textContent = 'FREYA'; el.title = 'Jugador 2 · Invitada'; }
+else { el.classList.add('practice'); D.chipRoleTxt.textContent = ctl.activeChar === 'devas' ? 'DEVAS' : 'FREYA'; el.title = 'Práctica local · TAB cambia'; }
+D.btnSwitch.innerHTML = '⇄ ' + (ctl.activeChar === 'devas' ? '<b style="color:var(--pink)">FREYA</b>' : '<b style="color:var(--blue)">DEVAS</b>') + ' <span style="opacity:.6">(TAB)</span>';
+updateAIUI();
+}
+function openDialog(id, line, authority) {
+const def = world.def.dialogs.find(x => x.id === id); if (!def) return;
+ctl.dialog = { def, line: line || 0, typed: 0, conf: { devas: false, freya: false }, gifOk: false };
+ctl.paused.dialog = true;
+document.body.classList.add('dlg-open');
+D.dialog.classList.remove('hidden');
+D.dlgName.textContent = def.name; D.dlgName.className = def.speaker;
+D.dlgImg.classList.add('hidden'); D.dlgCanvas.classList.remove('hidden');
+D.dlgImg.onload = () => { if (ctl.dialog && ctl.dialog.def.id === id) { ctl.dialog.gifOk = true; D.dlgImg.classList.remove('hidden'); D.dlgCanvas.classList.add('hidden'); } };
+D.dlgImg.onerror = () => { if (ctl.dialog) ctl.dialog.gifOk = false; };
+D.dlgImg.src = ANIM_CONFIG[def.speaker].caminar.gif;
+updateDialogUI(); SFX.play('ui');
+if (authority && Net.open) Net.send({ t: 'd', id, line: ctl.dialog.line });
+}
+function updateDialogUI() {
+const d = ctl.dialog; if (!d) return;
+const full = d.def.lines[d.line];
+D.dlgText.textContent = full.slice(0, Math.floor(d.typed));
+const me = ctl.role === 'freya' ? 'freya' : 'devas';
+D.confA.textContent = 'Devas ' + (d.conf.devas ? '✓' : '…'); D.confA.classList.toggle('ok', d.conf.devas);
+D.confB.textContent = 'Freya ' + (d.conf.freya ? '✓' : '…'); D.confB.classList.toggle('ok', d.conf.freya);
+const mine = d.conf[me];
+D.btnDlg.disabled = !!mine;
+D.btnDlg.textContent = mine ? (ctl.role === 'practice' ? '…' : 'Esperando a ' + (me === 'devas' ? 'Freya' : 'Devas') + '…') : 'Continuar ▶';
+}
+function dialogConfirm(who) {
+const d = ctl.dialog; if (!d) return;
+d.conf[who] = true;
+if (Net.open && isAuthority()) Net.send({ t: 'dack', who });
+updateDialogUI(); SFX.play('ui');
+if (isAuthority() && d.conf.devas && d.conf.freya) {
+if (d.line + 1 < d.def.lines.length) {
+d.line++; d.typed = 0; d.conf = { devas: false, freya: false };
+if (Net.open) Net.send({ t: 'dnext', line: d.line });
+updateDialogUI();
+} else {
+world.dialogsDone.add(d.def.id);
+if (Net.open) Net.send({ t: 'dnext', line: -1 });
+closeDialog(); saveSession();
+}
+}
+}
+function closeDialog() {
+ctl.dialog = null; ctl.paused.dialog = false;
+D.dialog.classList.add('hidden'); document.body.classList.remove('dlg-open');
+}
+function onDlgButton() {
+const d = ctl.dialog; if (!d) return;
+const full = d.def.lines[d.line];
+if (d.typed < full.length) { d.typed = full.length; updateDialogUI(); return; }
+if (ctl.role === 'practice') { dialogConfirm('devas'); if (ctl.dialog) dialogConfirm('freya'); }
+else if (ctl.role === 'freya') { Net.send({ t: 'dc' }); d.conf.freya = true; updateDialogUI(); }
+else dialogConfirm('devas');
+}
+function setNetPause(v) { ctl.paused.pause = v; setNetPauseUI(v); if (Net.open && isAuthority()) Net.send({ t: 'pz', v: v ? 1 : 0 }); }
+function setNetPauseUI(v) {
+ctl.paused.pause = v;
+D.pauseOv.classList.toggle('hidden', !v);
+document.body.classList.toggle('paused', v);
+}
+function togglePause() {
+if (ctl.dialog || ctl.won || ctl.paused.count || ctl.paused.wait) return;
+const v = !ctl.paused.pause;
+if (ctl.role === 'freya') Net.send({ t: 'pzr', v }); else setNetPause(v);
+SFX.play('ui');
+}
+const hudCache = { rope: -1, stat: '', prog: -1, anchor: null };
+function updateHUD() {
+if (ctl.mode !== 'playing') return;
+const rl = Math.round(world.ropeLen);
+if (rl !== hudCache.rope) { hudCache.rope = rl; D.ropeVal.textContent = rl + 'px'; D.ropeFill.style.width = (rl / MAX_ROPE * 100) + '%'; }
+D.ropeFill.className = world.contracting ? 'contract' : world.taut ? 'taut' : '';
+const stat = fmtTime(ctl.playT) + ' · 🪂' + ctl.falls + ' · 💛' + ctl.rescues + ' · ✦' + countShards() + '/' + world.def.shards.length;
+if (stat !== hudCache.stat) { hudCache.stat = stat; D.statLine.textContent = stat; }
+const g = world.def.goal, sp = world.def.spawn.devas.x;
+const prog = Math.round(clamp((Math.min(world.players.devas.x, world.players.freya.x) - sp) / (g.x - sp), 0, 1) * 100);
+if (prog !== hudCache.prog) { hudCache.prog = prog; D.progFill.style.width = prog + '%'; }
+const me = myPlayer();
+if (me && hudCache.anchor !== me.anchored) {
+hudCache.anchor = me.anchored;
+D.tAnchor.innerHTML = (me.anchored ? 'DESANCLAR' : 'ANCLAR') + '<span class="k">E</span>';
+D.tAnchor.classList.toggle('anchor-on', me.anchored);
+}
+D.tContract.classList.toggle('active', !!(me && me.inputs.contract));
+}
+function showMenu() {
+D.menu.classList.remove('hidden'); document.body.classList.add('mode-menu');
+document.body.classList.remove('won', 'paused', 'dlg-open');
+D.winOv.classList.add('hidden'); D.pauseOv.classList.add('hidden'); D.dialog.classList.add('hidden'); D.countOv.classList.add('hidden');
+hideBanner(); applyTouchVisibility(); updateAIUI(); refreshMenuPanels();
+}
+function refreshMenuPanels() {
+const sess = store.get('df1.session');
+const urlCode = getUrlCode();
+const hosting = Net.mode === 'host' && !Net.destroyed;
+const joining = Net.mode === 'guest' && !Net.destroyed && !!urlCode;
+D.mainBtns.classList.toggle('hidden', hosting || joining);
+D.roomPanel.classList.toggle('hidden', !hosting);
+D.joinPanel.classList.toggle('hidden', !joining);
+if (joining) D.joinCode.textContent = urlCode;
+D.btnResume.classList.toggle('hidden', !(sess && sess.role === 'devas' && !hosting && !urlCode));
+if (sess && sess.role === 'devas') D.btnResume.textContent = '↻ Reanudar sala ' + sess.code;
+D.btnHost.disabled = typeof Peer === 'undefined';
+D.netNote.textContent = typeof Peer === 'undefined' ? 'P2P: sin servicio (usa Práctica)' : 'P2P: listo';
+}
+function getUrlCode() {
+const raw = new URLSearchParams(location.search).get('sala');
+if (!raw) return null;
+const c = raw.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+return c || null;
+}
+async function copyLink() {
+const url = buildLink(Net.code);
+try { await navigator.clipboard.writeText(url); toast('📋 Enlace copiado ✔'); }
+catch (e) {
+try {
+const ta = document.createElement('textarea'); ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+toast('📋 Enlace copiado ✔');
+} catch (e2) { toast('Copia manualmente el enlace del recuadro'); }
+}
+SFX.play('ui');
+}
+async function shareLink() {
+const url = buildLink(Net.code);
+if (navigator.share) {
+try { await navigator.share({ title: 'Devas & Freya', text: '¡Ven a escalar conmigo! 🏔️💛 Únete como Freya:', url }); toast('📤 ¡Enlace compartido!'); }
+catch (e) { if (e && e.name !== 'AbortError') copyLink(); }
+} else copyLink();
+}
+function exitToMenu() {
+Net.send({ t: 'bye' }); Net.destroy(); store.del('df1.session');
+ctl.mode = 'menu'; ctl.role = null; ctl.started = false; ctl.dialog = null; ctl.paused = {}; ctl.won = false; ctl.awayT = 0;
+clearAllInputs(); buildWorld(0); parts.length = 0; cam.snap = true;
+showMenu(); toast('🏠 Menú principal');
+}
+function convertToPractice() {
+Net.send({ t: 'bye' }); Net.destroy(); store.del('df1.session');
+ctl.role = 'practice'; ctl.activeChar = ctl.activeChar || 'devas';
+ctl.paused.wait = false; ctl.paused.away = false; hideBanner();
+updateRoleChip(); applyTouchVisibility();
+toast('🎮 Modo práctica: TAB cambia de personaje');
+}
+function beginRun(resume) {
+ctl.mode = 'playing'; ctl.started = true;
+D.menu.classList.add('hidden'); document.body.classList.remove('mode-menu');
+ctl.count = resume ? 1.4 : 3.0; ctl.paused.count = true; ctl.lastCountN = -1;
+D.countOv.classList.remove('hidden');
+cam.snap = true; updateRoleChip(); applyTouchVisibility();
+setHint(resume ? '💛 Reanudando la escalada…' : '🏔️ Lleguen juntos a la fogata · recojan ✦ cristales', 8);
+if (ctl.role === 'practice') toast('🎮 Controlas a DEVAS · TAB cambia a FREYA', 3);
+if (!spritesLoaded) setTimeout(() => {
+if (!spriteToastShown && ctl.mode === 'playing') {
+spriteStatusUpdate();
+let ok = 0, tot = 0; for (const s in spriteCache) { tot++; if (spriteCache[s].ready) ok++; }
+if (ok < tot) { spriteToastShown = true; toast('🎨 Sprites no encontrados: personajes de respaldo activos', 3.2); }
+}
+}, 1200);
+saveSession();
+}
+function tickCountdown(dt) {
+if (!ctl.paused.count) return;
+ctl.count -= dt;
+const n = Math.max(1, Math.ceil(ctl.count));
+if (n !== ctl.lastCountN && ctl.count > 0) { ctl.lastCountN = n; SFX.play('count'); }
+if (ctl.count <= 0) {
+ctl.paused.count = false; D.countOv.classList.add('hidden'); SFX.play('go');
+if (isAuthority() && !world.dialogsDone.has('d1')) openDialog('d1', 0, true);
+} else {
+D.countNum.textContent = n;
+const fr = ctl.count - Math.floor(ctl.count);
+D.countNum.style.transform = 'scale(' + (0.8 + fr * 0.45) + ')';
+D.countNum.style.opacity = 0.5 + fr * 0.5;
+}
+}
+function tickWin(dt) {
+if (ctl.won && ctl.winDelay > 0) {
+ctl.winDelay -= dt;
+if (ctl.winDelay <= 0) {
+D.winTime.textContent = fmtTime(ctl.playT); D.winFalls.textContent = ctl.falls;
+D.winRes.textContent = ctl.rescues; D.winShards.textContent = countShards() + '/' + world.def.shards.length;
+D.winOv.classList.remove('hidden'); document.body.classList.add('won');
+}
+}
+}
+function restartRun() {
+SFX.play('ui');
+if (ctl.role === 'freya') { Net.send({ t: 'rst' }); return; }
+fullReset();
+if (Net.open) Net.send({ t: 'go', s: buildSnap(), resume: false, diff: ctl.diff });
+beginRun(false);
+}
+function bindUI() {
+D.btnHost.addEventListener('click', () => { SFX.init(); SFX.play('ui'); store.del('df1.session'); buildWorld(0); ctl.role = 'devas'; Net.host(null, false); });
+D.btnPractice.addEventListener('click', () => { SFX.init(); SFX.play('ui'); Net.destroy(); store.del('df1.session'); ctl.role = 'practice'; ctl.activeChar = 'devas'; fullReset(); beginRun(false); });
+D.btnResume.addEventListener('click', () => {
+SFX.init(); SFX.play('ui'); const sess = store.get('df1.session'); if (!sess) return;
+buildWorld(0); applySession(sess); ctl.role = 'devas';
+Net.host(sess.code, true); toast('↻ Sala restaurada. Comparte el mismo enlace.');
+});
+D.diffRow.querySelectorAll('[data-diff]').forEach(b => b.addEventListener('click', () => {
+ctl.diff = b.dataset.diff;
+D.diffRow.querySelectorAll('.diffChip').forEach(x => x.classList.toggle('sel', x === b));
+D.diffNote.textContent = ctl.diff === 'adventure' ? 'Caída: ambos vuelven al último campamento.' : 'Caída: solo quien cae reaparece junto a su pareja.';
+SFX.play('ui');
+}));
+D.btnCopy.addEventListener('click', copyLink);
+D.btnShare.addEventListener('click', shareLink);
+D.btnCancelJoin.addEventListener('click', () => {
+Net.destroy(); ctl.role = null;
+try { history.replaceState(null, '', location.pathname); } catch (e) {}
+refreshMenuPanels(); SFX.play('ui');
+});
+D.btnDlg.addEventListener('click', onDlgButton);
+D.btnPause.addEventListener('click', () => { SFX.init(); togglePause(); });
+D.btnResumeP.addEventListener('click', togglePause);
+D.btnRestartP.addEventListener('click', restartRun);
+D.btnAI.addEventListener('click', toggleAI);
+D.btnAIP.addEventListener('click', toggleAI);
+D.btnSoundP.addEventListener('click', () => { SFX.init(); SFX.setEnabled(!SFX.enabled); });
+D.btnSound.addEventListener('click', () => { SFX.init(); SFX.setEnabled(!SFX.enabled); });
+D.btnTouchP.addEventListener('click', () => { touchMode = touchMode === 'auto' ? 'on' : touchMode === 'on' ? 'off' : 'auto'; store.lset('df1.touch', touchMode); applyTouchVisibility(); SFX.play('ui'); });
+D.btnMenuP.addEventListener('click', exitToMenu);
+D.btnAgain.addEventListener('click', restartRun);
+D.btnWinMenu.addEventListener('click', exitToMenu);
+D.btnBannerA.addEventListener('click', convertToPractice);
+D.btnBannerB.addEventListener('click', exitToMenu);
+updateSoundUI(); updateAIUI();
+}
+
+/* ═══════════ [12] CONTROLADOR · bucle de paso fijo ═══════════ */
+const anyPause = () => !!(ctl.paused.dialog || ctl.paused.pause || ctl.paused.count || ctl.paused.wait || ctl.paused.away || ctl.paused.won);
+let lastFrame = 0, acc = 0;
+function resetFrameClock() {
+lastFrame = performance.now();
+acc = 0;
+}
+function tick(dt) {
+tickToast(dt); tickHint(dt); tickCountdown(dt); tickWin(dt);
+if (ctl.fade > 0) { ctl.fade = Math.max(0, ctl.fade - dt * 1.6); D.fadeOv.style.opacity = ctl.fade; }
+if (ctl.paused.away) {
+ctl.awayT += dt;
+if (ctl.awayT > 60) { ctl.paused.away = false; ctl.paused.wait = true; showBanner('wait', 'Tu pareja no volvió. La partida sigue guardada. 💛'); }
+} else ctl.awayT = 0;
+const paused = anyPause();
+if (ctl.mode === 'playing') {
+gatherInputs();
+if (isAuthority()) {
+if (!paused && ctl.started) { ctl.playT += dt; stepWorld(dt); }
+netTick(dt);
+} else {
+if (!paused) world.time += dt;
+updateMovers();
+world.ropeLen += (world.ropeTarget - world.ropeLen) * Math.min(1, 10 * dt);
+netTick(dt);
+}
+if (!paused) for (const id in world.players) { const p = world.players[id]; p.anim.set(p.animKey); p.anim.update(dt, p.idleAnim); }
+} else {
+world.time += dt; updateMovers();
+for (const id in world.players) { const p = world.players[id]; p.anim.set('caminar'); p.anim.update(dt, true); }
+}
+tickParticles(dt);
+SFX.update();
+}
+function renderFrame(dt) {
+if (ctl.mode === 'playing' && !isAuthority()) {
+const k = 1 - Math.exp(-14 * dt);
+for (const id in world.players) {
+const p = world.players[id];
+p.x += (p.tx - p.x) * k; p.y += (p.ty - p.y) * k;
+if (Math.abs(p.tx - p.x) > 240 || Math.abs(p.ty - p.y) > 240) { p.x = p.tx; p.y = p.ty; }
+}
+}
+if (ctl.dialog) {
+const full = ctl.dialog.def.lines[ctl.dialog.line];
+if (ctl.dialog.typed < full.length) {
+const prev = Math.floor(ctl.dialog.typed);
+ctl.dialog.typed = Math.min(full.length, ctl.dialog.typed + dt * 42);
+if (Math.floor(ctl.dialog.typed / 3) !== Math.floor(prev / 3)) SFX.play('type');
+D.dlgText.textContent = full.slice(0, Math.floor(ctl.dialog.typed));
+}
+}
+updateCamera(dt);
+render(dt);
+updateHUD();
+}
+function loop(ts) {
+if (!lastFrame) lastFrame = ts;
+let dt = (ts - lastFrame) / 1000;
+lastFrame = ts;
+if (!isFinite(dt) || dt < 0) dt = 0;
+if (dt > 0.1) dt = 0.1;
+acc += dt;
+let steps = 0;
+while (acc >= STEP && steps < 6) { tick(STEP); acc -= STEP; steps++; }
+if (steps === 6) acc = 0;
+renderFrame(dt);
+requestAnimationFrame(loop);
+}
+function boot() {
+fitCanvas(); prerenderBG(); buildWorld(0);
+bindInput(); bindUI(); bindVisibility(); preloadSprites();
+window.addEventListener('resize', fitCanvas);
+window.addEventListener('orientationchange', () => setTimeout(fitCanvas, 250));
+if (typeof Peer === 'undefined') {
+const s = document.createElement('script');
+s.src = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';
+s.onload = () => { refreshMenuPanels(); toast('📡 Servicio P2P listo'); };
+s.onerror = () => refreshMenuPanels();
+document.head.appendChild(s);
+}
+const urlCode = getUrlCode();
+if (urlCode) { ctl.role = 'freya'; D.joinCode.textContent = urlCode; Net.guest(urlCode); }
+else {
+const sess = store.get('df1.session');
+if (sess && sess.role === 'devas') toast('💛 Tienes una sala guardada: puedes reanudarla', 3);
+}
+refreshMenuPanels();
+requestAnimationFrame(t => { lastFrame = t; acc = 0; requestAnimationFrame(loop); });
+}
+boot();
+</script>
+</body>
+</html>
