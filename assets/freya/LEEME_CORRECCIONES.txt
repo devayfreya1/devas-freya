@@ -1,0 +1,1 @@
+Animaciones corregidas: CAMINAR (12 frames), SALTAR (16 frames) y RESCATAR DEVAS (13 frames). Cada una incluye GIF y fotogramas individuales PNG. CAMINAR incluye hoja de sprites 4x3 creada a partir del GIF. La versión anterior de caminar se conserva en RESPALDO_CAMINAR_ANTERIOR. Las demás animaciones no se modificaron.

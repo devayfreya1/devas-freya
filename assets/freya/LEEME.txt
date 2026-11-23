@@ -1,0 +1,7 @@
+FREYA - Animaciones aprobadas
+
+10 movimientos organizados. Cada carpeta contiene GIF original de PixelLab, hoja de sprites original y fotogramas PNG extraídos.
+Los PNG son cuadros de 256x256; comprueba transparencia y colisiones al integrar.
+El desanclaje usa la última versión aprobada (1000085541.gif), NO la versión redibujada.
+Las animaciones todavía no están conectadas al código HTML del videojuego.
+Los bucles, transiciones, manos, pies y anclajes se ajustarán en la integración.

@@ -1,0 +1,72 @@
+[
+  {
+    "animacion": "01_Caminar",
+    "estado": "APROBADO",
+    "origen_gif": "1000086141.gif",
+    "origen_lamina": "1000086142.png",
+    "fotogramas": 13
+  },
+  {
+    "animacion": "02_Saltar",
+    "estado": "APROBADO",
+    "origen_gif": "1000086145.gif",
+    "origen_lamina": "1000086146.png",
+    "fotogramas": 13
+  },
+  {
+    "animacion": "03_Correr",
+    "estado": "APROBADO",
+    "origen_gif": "1000086143.gif",
+    "origen_lamina": "1000086144.png",
+    "fotogramas": 13
+  },
+  {
+    "animacion": "04_Agacharse",
+    "estado": "APROBADO",
+    "origen_gif": "1000086150.gif",
+    "origen_lamina": "1000086151.png",
+    "fotogramas": 13
+  },
+  {
+    "animacion": "05_Caer",
+    "estado": "APROBADO",
+    "origen_gif": "1000086147.gif",
+    "origen_lamina": "1000086148.png",
+    "fotogramas": 13
+  },
+  {
+    "animacion": "06_Colgado_cuerda",
+    "estado": "APROBADO",
+    "origen_gif": "1000086159.gif",
+    "origen_lamina": "1000086160.png",
+    "fotogramas": 13
+  },
+  {
+    "animacion": "07_Ser_rescatado_por_Freya",
+    "estado": "APROBADO",
+    "origen_gif": "1000086184.gif",
+    "origen_lamina": "1000086185.png",
+    "fotogramas": 13
+  },
+  {
+    "animacion": "08_Rescatar_a_Freya_LIMPIO",
+    "estado": "PENDIENTE_APROBACION",
+    "origen_gif": "Devas_rescate_prueba.zip/Devas_rescate_prueba.gif",
+    "origen_lamina": "devas_rescate_limpieza_frames.png",
+    "fotogramas": 13
+  },
+  {
+    "animacion": "09_Anclarse_espada",
+    "estado": "APROBADO",
+    "origen_gif": "1000086157.gif",
+    "origen_lamina": "1000086158.png",
+    "fotogramas": 13
+  },
+  {
+    "animacion": "10_Desanclarse_espada",
+    "estado": "APROBADO",
+    "origen_gif": "1000086199.gif",
+    "origen_lamina": "1000086200.png",
+    "fotogramas": 13
+  }
+]

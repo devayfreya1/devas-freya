@@ -1,0 +1,21 @@
+{
+  "origen": "Freya_animaciones_aprobadas-3.zip",
+  "reemplazos_verificados": {
+    "02_saltar": {
+      "hoja": "1000085922.png",
+      "gif": "1000085923.gif",
+      "frames": 16
+    },
+    "09_rescatar_devas": {
+      "hoja": "1000085522.png",
+      "gif": "1000085521.gif",
+      "frames": 13
+    },
+    "01_caminar": {
+      "gif": "1000085490.gif",
+      "frames": 12,
+      "hoja": "hoja_sprites_4x3.png (generada)"
+    }
+  },
+  "otras_animaciones": "conservadas sin cambios"
+}

@@ -1,0 +1,112 @@
+[
+  {
+    "movimiento": "01_caminar",
+    "fotogramas": 12,
+    "dimensiones": [
+      256,
+      256
+    ],
+    "origen_gif": "1000085490.gif",
+    "origen_hoja": "generada desde GIF corregido",
+    "nota": "Caminar corregido y aprobado; 12 fotogramas separados; hoja sprites 4x3 generada"
+  },
+  {
+    "movimiento": "02_saltar",
+    "fotogramas": 13,
+    "dimensiones": [
+      256,
+      256
+    ],
+    "origen_gif": "1000085498.gif",
+    "origen_hoja": "1000085499.png",
+    "nota": "Fuente PixelLab original; requiere revisión de bucles y puntos de anclaje para integración"
+  },
+  {
+    "movimiento": "03_anclarse",
+    "fotogramas": 13,
+    "dimensiones": [
+      256,
+      256
+    ],
+    "origen_gif": "1000085504.gif",
+    "origen_hoja": "1000085505.png",
+    "nota": "Fuente PixelLab original; requiere revisión de bucles y puntos de anclaje para integración"
+  },
+  {
+    "movimiento": "04_colgada",
+    "fotogramas": 13,
+    "dimensiones": [
+      256,
+      256
+    ],
+    "origen_gif": "1000085506.gif",
+    "origen_hoja": "1000085507.png",
+    "nota": "Fuente PixelLab original; requiere revisión de bucles y puntos de anclaje para integración"
+  },
+  {
+    "movimiento": "05_ser_rescatada",
+    "fotogramas": 13,
+    "dimensiones": [
+      256,
+      256
+    ],
+    "origen_gif": "1000085508.gif",
+    "origen_hoja": "1000085509.png",
+    "nota": "Fuente PixelLab original; requiere revisión de bucles y puntos de anclaje para integración"
+  },
+  {
+    "movimiento": "06_correr",
+    "fotogramas": 13,
+    "dimensiones": [
+      256,
+      256
+    ],
+    "origen_gif": "1000085513.gif",
+    "origen_hoja": "1000085514.png",
+    "nota": "Fuente PixelLab original; requiere revisión de bucles y puntos de anclaje para integración"
+  },
+  {
+    "movimiento": "07_agacharse",
+    "fotogramas": 13,
+    "dimensiones": [
+      256,
+      256
+    ],
+    "origen_gif": "1000085515.gif",
+    "origen_hoja": "1000085516.png",
+    "nota": "Fuente PixelLab original; requiere revisión de bucles y puntos de anclaje para integración"
+  },
+  {
+    "movimiento": "08_caer",
+    "fotogramas": 13,
+    "dimensiones": [
+      256,
+      256
+    ],
+    "origen_gif": "1000085517.gif",
+    "origen_hoja": "1000085518.png",
+    "nota": "Fuente PixelLab original; requiere revisión de bucles y puntos de anclaje para integración"
+  },
+  {
+    "movimiento": "09_rescatar_devas",
+    "fotogramas": 13,
+    "dimensiones": [
+      256,
+      256
+    ],
+    "origen_gif": "1000085519.gif",
+    "origen_hoja": "1000085520.png",
+    "nota": "Fuente PixelLab original; requiere revisión de bucles y puntos de anclaje para integración"
+  },
+  {
+    "movimiento": "10_desanclarse",
+    "fotogramas": 13,
+    "dimensiones": [
+      256,
+      256
+    ],
+    "origen_gif": "1000085541.gif",
+    "origen_hoja": "1000085542.png",
+    "nota": "Fuente PixelLab original; requiere revisión de bucles y puntos de anclaje para integración"
+  }
+]
