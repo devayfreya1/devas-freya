@@ -2199,6 +2199,40 @@ if (steps === 6) acc = 0;
 renderFrame(dt);
 requestAnimationFrame(loop);
 }
+function bindVisibility() {
+if (bindVisibility._bound) return;
+bindVisibility._bound = true;
+let awaySent = false;
+const goAway = () => {
+if (awaySent) return;
+awaySent = true;
+saveSession();
+clearAllInputs();
+if (isAuthority() && Net.open) Net.send({ t: 's', ...buildSnap() });
+if (Net.open) { Net.send({ t: 'away' }); setNetDot('warn'); }
+if (SFX.ctx && SFX.ctx.state === 'running') SFX.ctx.suspend();
+};
+const comeBack = () => {
+resetFrameClock();
+awaySent = false;
+if (Net.open) {
+Net.send({ t: 'back' });
+if (ctl.role === 'freya') Net.send({ t: 'sync' });
+Net.lastRecv = performance.now();
+setNetDot('ok');
+} else if (!Net.destroyed && ctl.mode === 'playing') {
+if (ctl.role === 'freya') Net.scheduleRetry('Reconectando con Devas…');
+else { try { if (Net.peer && !Net.peer.destroyed && Net.peer.disconnected) Net.peer.reconnect(); } catch (e) {} }
+}
+if (SFX.ctx && SFX.enabled && SFX.ctx.state === 'suspended') SFX.ctx.resume();
+};
+document.addEventListener('visibilitychange', () => { if (document.hidden) goAway(); else comeBack(); });
+window.addEventListener('pagehide', goAway);
+document.addEventListener('freeze', goAway);
+document.addEventListener('resume', comeBack);
+window.addEventListener('pageshow', e => { if (e && e.persisted) comeBack(); });
+}
+
 function boot() {
 fitCanvas(); prerenderBG(); buildWorld(0);
 bindInput(); bindUI(); bindVisibility(); preloadSprites();
