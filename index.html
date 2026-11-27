@@ -550,7 +550,8 @@ dialogs: [
 ] };
 
 /* ═══════════ [3] UTILIDADES ═══════════ */
-const (id));
+const $ = id => document.getElementById(id);
+
 
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const approach = (v, t, d) => v < t ? Math.min(v + d, t) : Math.max(v - d, t);
