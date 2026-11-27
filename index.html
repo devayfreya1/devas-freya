@@ -448,28 +448,28 @@ DEVAS & FREYA · CAPA 1 · MOTOR BASE (archivo único, modular)
 const ANIM_CONFIG = {
   cols: 4, rows: 3, totalFrames: 12, fps: 12,
   devas: {
-    caminar:   { src: 'assets/devas/01_Caminar/sheet.png',                 gif: 'assets/devas/01_Caminar/animation.gif' },
-    saltar:    { src: 'assets/devas/02_Saltar/sheet.png' },
-    correr:    { src: 'assets/devas/03_Correr/sheet.png' },
-    agacharse: { src: 'assets/devas/04_Agacharse/sheet.png' },
-    caer:      { src: 'assets/devas/05_Caer/sheet.png' },
-    colgado:   { src: 'assets/devas/06_Colgado_cuerda/sheet.png' },
-    rescatado: { src: 'assets/devas/07_Ser_rescatado_por_Freya/sheet.png' },
-    rescatar:  { src: 'assets/devas/08_Rescatar_a_Freya_LIMPIO/sheet.png' },
-    anclar:    { src: 'assets/devas/09_Anclarse_espada/sheet.png' },
-    desanclar: { src: 'assets/devas/10_Desanclarse_espada/sheet.png' }
+    caminar:   { src: 'assets/devas/01_Caminar/lamina.png', cols: 4, rows: 4,                 gif: 'assets/devas/01_Caminar/animation.gif' },
+    saltar:    { src: 'assets/devas/02_Saltar/lamina.png', cols: 4, rows: 4, cols: 4, rows: 4 },
+    correr:    { src: 'assets/devas/03_Correr/lamina.png', cols: 4, rows: 4, cols: 4, rows: 4 },
+    agacharse: { src: 'assets/devas/04_Agacharse/lamina.png', cols: 4, rows: 4, cols: 4, rows: 4 },
+    caer:      { src: 'assets/devas/05_Caer/lamina.png', cols: 4, rows: 4, cols: 4, rows: 4 },
+    colgado:   { src: 'assets/devas/06_Colgado_cuerda/lamina.png', cols: 4, rows: 4, cols: 4, rows: 4 },
+    rescatado: { src: 'assets/devas/07_Ser_rescatado_por_Freya/lamina.png', cols: 4, rows: 4, cols: 4, rows: 4 },
+    rescatar:  { src: 'assets/devas/08_Rescatar_a_Freya_LIMPIO/lamina.png', cols: 4, rows: 4, cols: 4, rows: 4 },
+    anclar:    { src: 'assets/devas/09_Anclarse_espada/lamina.png', cols: 4, rows: 4, cols: 4, rows: 4 },
+    desanclar: { src: 'assets/devas/10_Desanclarse_espada/lamina.png', cols: 4, rows: 4, cols: 4, rows: 4 }
   },
   freya: {
     caminar:   { src: 'assets/freya/01_caminar/hoja_sprites_4x3.png',      gif: 'assets/freya/01_caminar/animacion_original.gif' },
-    saltar:    { src: 'assets/freya/02_saltar/hoja_original_pixellab.png' },
-    correr:    { src: 'assets/freya/06_correr/hoja_original_pixellab.png' },
-    agacharse: { src: 'assets/freya/07_agacharse/hoja_original_pixellab.png' },
-    caer:      { src: 'assets/freya/08_caer/hoja_original_pixellab.png' },
-    colgado:   { src: 'assets/freya/04_colgada/hoja_original_pixellab.png' },
-    rescatado: { src: 'assets/freya/05_ser_rescatada/hoja_original_pixellab.png' },
-    rescatar:  { src: 'assets/freya/09_rescatar_devas/hoja_original_pixellab.png' },
-    anclar:    { src: 'assets/freya/03_anclarse/hoja_original_pixellab.png' },
-    desanclar: { src: 'assets/freya/10_desanclarse/hoja_original_pixellab.png' }
+    saltar:    { src: 'assets/freya/02_saltar/hoja_original_pixellab.png', cols: 5, rows: 5 },
+    correr:    { src: 'assets/freya/06_correr/hoja_original_pixellab.png', cols: 4, rows: 4 },
+    agacharse: { src: 'assets/freya/07_agacharse/hoja_original_pixellab.png', cols: 4, rows: 4 },
+    caer:      { src: 'assets/freya/08_caer/hoja_original_pixellab.png', cols: 4, rows: 4 },
+    colgado:   { src: 'assets/freya/04_colgada/hoja_original_pixellab.png', cols: 4, rows: 4 },
+    rescatado: { src: 'assets/freya/05_ser_rescatada/hoja_original_pixellab.png', cols: 4, rows: 4 },
+    rescatar:  { src: 'assets/freya/09_rescatar_devas/hoja_original_pixellab.png', cols: 4, rows: 4 },
+    anclar:    { src: 'assets/freya/03_anclarse/hoja_original_pixellab.png', cols: 4, rows: 4 },
+    desanclar: { src: 'assets/freya/10_desanclarse/hoja_original_pixellab.png', cols: 4, rows: 4 }
   }
 };
 
@@ -1311,9 +1311,9 @@ ctx.translate(cx, feet); ctx.scale(p.facing * sx, sy);
 if (p.anim.key === 'colgado') ctx.rotate(Math.sin(t * 3) * 0.06 + clamp(p.vx * 0.0004, -0.2, 0.2));
 if (entry && entry.ready) {
 const img = entry.img;
-const frameWidth = img.width / ANIM_CONFIG.cols;
-const frameHeight = img.height / ANIM_CONFIG.rows;
-const col = p.anim.frame % ANIM_CONFIG.cols, row = Math.floor(p.anim.frame / ANIM_CONFIG.cols);
+const frameWidth = img.width / (spec.cols || ANIM_CONFIG.cols);
+const frameHeight = img.height / (spec.rows || ANIM_CONFIG.rows);
+const col = p.anim.frame % (spec.cols || ANIM_CONFIG.cols), row = Math.floor(p.anim.frame / (spec.cols || ANIM_CONFIG.cols));
 const dh = p.h + 6, dw = dh * (frameWidth / frameHeight);
 ctx.drawImage(img, col * frameWidth, row * frameHeight, frameWidth, frameHeight, -dw / 2, -dh, dw, dh);
 } else {
