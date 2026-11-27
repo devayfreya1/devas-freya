@@ -697,7 +697,12 @@ update(dt, idle) {
 if (idle) { this.frame = 0; this.acc = 0; return; }
 const speed = ANIM_CONFIG.fps * (this.key === 'desanclar' ? 2.2 : 1);
 this.acc += dt; const spf = 1 / speed;
-while (this.acc >= spf) { this.acc -= spf; this.frame = (this.frame + 1) % ANIM_CONFIG.totalFrames; }
+const once = (this.key === 'anclar' || this.key === 'desanclar');
+    while (this.acc >= spf) {
+      this.acc -= spf;
+      if (once) this.frame = Math.min(ANIM_CONFIG.totalFrames - 1, this.frame + 1);
+      else this.frame = (this.frame + 1) % ANIM_CONFIG.totalFrames;
+    }
 }
 }
 
@@ -1311,10 +1316,10 @@ ctx.translate(cx, feet); ctx.scale(p.facing * sx, sy);
 if (p.anim.key === 'colgado') ctx.rotate(Math.sin(t * 3) * 0.06 + clamp(p.vx * 0.0004, -0.2, 0.2));
 if (entry && entry.ready) {
 const img = entry.img;
-const frameWidth = img.width / Math.max(1, Math.round((img.naturalWidth || img.width) / 256));
-const frameHeight = img.height / Math.max(1, Math.round((img.naturalHeight || img.height) / 256));
-const col = p.anim.frame % Math.max(1, Math.round((img.naturalWidth || img.width) / 256)), row = Math.floor(p.anim.frame / Math.max(1, Math.round((img.naturalWidth || img.width) / 256)));
-const dh = p.h + 6, dw = dh * (frameWidth / frameHeight);
+const frameWidth = img.width / 4;
+const frameHeight = img.height / ((img.naturalHeight || img.height) < (img.naturalWidth || img.width) ? 3 : 4);
+const col = p.anim.frame % 4, row = Math.floor(p.anim.frame / 4);
+const dh = PHYS.hStand + 6, dw = dh * (frameWidth / frameHeight);
 ctx.drawImage(img, col * frameWidth, row * frameHeight, frameWidth, frameHeight, -dw / 2, -dh, dw, dh);
 } else {
 drawFallbackBody(p, t);
